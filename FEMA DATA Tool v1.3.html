@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FEMA DATA Tool - Évaluation Maturité Données</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23003d66'/%3E%3Ccircle cx='40' cy='40' r='12' fill='%23FF6B35'/%3E%3Crect x='55' y='35' width='25' height='30' fill='%23FF6B35' rx='2'/%3E%3C/svg%3E" type="image/svg+xml">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ===== PALETTE IIBA CAMEROUN ===== */
+        :root {
+            --color-primary-dark: #003d66;      /* Bleu foncé IIBA */
+            --color-primary-light: #0056a8;     /* Bleu clair */
+            --color-accent-orange: #FF6B35;     /* Orange primaire */
+            --color-secondary-gray: #757575;    /* Gris secondaire */
+            --color-light-gray: #f5f5f5;        /* Gris clair */
+            --color-white: #ffffff;
+            --color-success: #27ae60;
+            --color-warning: #f39c12;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #1a5f8d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #1a5f8d 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 4px solid var(--color-accent-orange);
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-iiba {
+            height: 50px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--color-accent-orange);
+            letter-spacing: -0.5px;
+        }
+        
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            margin-bottom: 35px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .question-context {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .radio-option:hover {
+            background: #ecf0f1;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: var(--color-accent-orange);
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-light-gray);
+            margin-bottom: 30px;
+            background: #f8f9fa;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-secondary-gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+        
+        .tab-button.active {
+            color: white;
+            background: var(--color-primary-dark);
+            border-bottom-color: var(--color-accent-orange);
+        }
+        
+        .tab-button:hover {
+            background: var(--color-light-gray);
+            color: var(--color-primary-dark);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--color-accent-orange) 0%, #ff8c42 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--color-secondary-gray);
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(117, 117, 117, 0.3);
+        }
+        
+        .btn-print {
+            background: var(--color-primary-dark);
+            margin-left: 10px;
+        }
+        
+        .btn-print:hover {
+            box-shadow: 0 10px 20px rgba(0, 61, 102, 0.3);
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-top: 4px solid var(--color-accent-orange);
+        }
+        
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .benchmark-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-accent-orange);
+        }
+        
+        .rapport-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-primary-dark);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rapport-card h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .rapport-card p {
+            color: var(--color-secondary-gray);
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .obstacle-item {
+            background: #fef3f0;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--color-accent-orange);
+        }
+        
+        .obstacle-item .rang {
+            display: inline-block;
+            background: var(--color-accent-orange);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.85em;
+        }
+        
+        .obstacle-item .nom {
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin-right: 10px;
+        }
+        
+        .obstacle-item .pourcentage {
+            color: var(--color-accent-orange);
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 3px solid var(--color-accent-orange);
+        }
+        
+        .stat-box .number {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box .label {
+            font-size: 0.85em;
+            opacity: 0.95;
+        }
+        
+        .sector-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .sector-table th {
+            background: var(--color-primary-dark);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .sector-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-light-gray);
+            font-size: 0.9em;
+        }
+        
+        .sector-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .sector-table tr:hover {
+            background: #f0f8ff;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .tabs, .tab-button, .btn-print, .btn-secondary {
+                display: none;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .score-card {
+                page-break-inside: avoid;
+            }
+            
+            .rec-horizon {
+                page-break-inside: avoid;
+            }
+            
+            .recommendations-section {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .benchmark-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .benchmark-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.95em;
+        }
+        
+        .benchmark-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recommendations-section {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .rec-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .rec-horizon {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--color-accent-orange);
+        }
+        
+        .rec-horizon h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        
+        .rec-horizon ul {
+            margin-left: 20px;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .source-footer {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #1976d2;
+        }
+        
+        .source-footer a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .source-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-primary-dark);
+            color: white;
+            padding: 40px 20px;
+            border-top: 3px solid var(--color-accent-orange);
+            font-size: 0.9em;
+            line-height: 1.7;
+        }
+        
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-section {
+            margin-bottom: 20px;
+        }
+        
+        .footer-section strong {
+            color: var(--color-accent-orange);
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .footer-links a {
+            color: var(--color-accent-orange);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+            color: #ff8c42;
+        }
+        
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .footer-social a {
+            color: var(--color-accent-orange);
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .footer-social a:hover {
+            transform: scale(1.1);
+        }
+        
+        .footer-copyright {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                padding: 30px 15px;
+            }
+            
+            .footer-links {
+                gap: 10px;
+            }
+            
+            .footer-links a {
+                font-size: 0.85em;
+            }
+        }
+        
+        .chart {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .chart h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        
+        .bar-item {
+            margin-bottom: 12px;
+        }
+        
+        .bar-label {
+            font-size: 0.85em;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .bar-container {
+            background: #ecf0f1;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            background: linear-gradient(90deg, var(--color-accent-orange) 0%, #ff8c42 100%);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent-orange) 0%, #ff8c42 100%);
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .header p {
+                font-size: 0.85em;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                padding: 12px 15px;
+                font-size: 0.9em;
+                flex: 1;
+                min-width: 150px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .section-title {
+                font-size: 1.1em;
+            }
+            
+            .form-group label {
+                font-size: 0.9em;
+            }
+            
+            .benchmark-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 0;
+                margin: 0;
+                box-shadow: none;
+            }
+            
+            .header {
+                padding: 20px 10px;
+                border-bottom: 3px solid var(--color-accent-orange);
+            }
+            
+            .header h1 {
+                font-size: 1.2em;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                gap: 0;
+                margin-bottom: 20px;
+            }
+            
+            .tab-button {
+                flex: none;
+                width: 100%;
+                border-bottom: 2px solid transparent;
+                border-right: 3px solid transparent;
+                padding: 10px;
+            }
+            
+            .tab-button.active {
+                border-bottom: 3px solid var(--color-accent-orange);
+                border-right: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sector-table {
+                font-size: 0.85em;
+            }
+            
+            .sector-table th,
+            .sector-table td {
+                padding: 8px;
+            }
+            
+            .rec-horizon ul {
+                margin-left: 15px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 200" width="50" height="40" style="filter: brightness(0) invert(1);">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff8c42;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="40" cy="40" r="20" fill="url(#grad1)"/>
+                    <rect x="15" y="60" width="50" height="60" fill="#003d66" rx="4"/>
+                    <text x="120" y="50" font-size="24" font-weight="bold" fill="#003d66">IIBA</text>
+                    <text x="120" y="70" font-size="12" fill="#757575">Cameroon</text>
+                </svg>
+                <div>
+                    <h1>FEMA DATA Tool v1.3</h1>
+                    <p>Évaluation Maturité Données | IIBA Cameroun - GECAM</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('assessment')">📋 Diagnostic</button>
+            <button class="tab-button" onclick="switchTab('results')">📊 Résultats</button>
+            <button class="tab-button" onclick="switchTab('rapport')">📑 Enquête Nationale</button>
+        </div>
+        
+        <div class="content">
+            <!-- TAB 1: FORMULAIRE DIAGNOSTIC -->
+            <div id="assessment" class="tab-content active">
+            <form id="assessmentForm">
+                <!-- SECTION 1: PROFIL -->
+                <div class="form-section">
+                    <h2 class="section-title">📋 Profil de votre organisation</h2>
+                    
+                    <div class="form-group">
+                        <label for="orgType">Type d'organisation *</label>
+                        <select id="orgType" name="orgType" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="tpe">TPE / PME (< 50 employés)</option>
+                            <option value="eti">PME / ETI (50 – 500 employés)</option>
+                            <option value="ge">Grande entreprise (> 500 employés)</option>
+                            <option value="admin">Administration / Organisme public</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sector">Secteur d'activité *</label>
+                        <select id="sector" name="sector" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="finance">Finance & Assurances</option>
+                            <option value="sante">Santé & Pharmaceutique</option>
+                            <option value="agri">Agriculture & Agro-industrie</option>
+                            <option value="telecom">Télécoms & Énergie</option>
+                            <option value="commerce">Commerce & Distribution</option>
+                            <option value="admin">Administration & Secteur public</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="budget">Budget annuel dédié à la donnée (Data, BI, Gouvernance, Sécurité) *</label>
+                        <div class="question-context">Ordres de grandeur : PME 3-10M FCFA, ETI 60-150M, Grandes 300M-2Md</div>
+                        <select id="budget" name="budget" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="0">0 FCFA – Aucun budget dédié</option>
+                            <option value="1_5">1 à 5 M FCFA</option>
+                            <option value="5_10">5 à 10 M FCFA</option>
+                            <option value="10_20">10 à 20 M FCFA</option>
+                            <option value="20_100">20 à 100 M FCFA</option>
+                            <option value="100_plus">Plus de 100 M FCFA</option>
+                            <option value="unknown">Je ne sais pas</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- SECTION 2: GOUVERNANCE & VISION -->
+                <div class="form-section">
+                    <h2 class="section-title">🎯 Gouvernance & Vision (Axe 1)</h2>
+                    
+                    <div class="form-group">
+                        <label>Vos décisions stratégiques sont-elles basées sur l'analyse de données fiables ?</label>
+                        <div class="question-context">64% du Cameroun jugent données essentielles, mais seulement 18% les utilisent systématiquement</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g1_1" name="g1" value="1">
+                                <label for="g1_1">Non, décisions par intuition</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_2" name="g1" value="2">
+                                <label for="g1_2">Rarement, quelques cas</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_3" name="g1" value="3">
+                                <label for="g1_3">Parfois, processus mixte</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_4" name="g1" value="4">
+                                <label for="g1_4">Souvent, approche data-driven</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_5" name="g1" value="5">
+                                <label for="g1_5">Systématiquement, culture data</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Qui est responsable de la stratégie données dans votre organisation ?</label>
+                        <div class="question-context">« Champion Data » = directeur, responsable IT, ou analyste dédié(e)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g2_1" name="g2" value="1">
+                                <label for="g2_1">Personne identifiée</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_2" name="g2" value="2">
+                                <label for="g2_2">Rôle flou, multiple acteurs</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_3" name="g2" value="3">
+                                <label for="g2_3">Chef IT + Métiers, coordonnés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_4" name="g2" value="4">
+                                <label for="g2_4">DRH/Direction + IT structuré</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_5" name="g2" value="5">
+                                <label for="g2_5">Chief Data Officer ou équivalent</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Votre organisation a-t-elle une politique écrite de gouvernance des données ?</label>
+                        <div class="question-context">Gouvernance = responsabilités, accès, droits, qualité des données</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g3_1" name="g3" value="1">
+                                <label for="g3_1">Non, aucune</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_2" name="g3" value="2">
+                                <label for="g3_2">Esquisse informelle</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_3" name="g3" value="3">
+                                <label for="g3_3">Basique, quelques règles écrites</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_4" name="g3" value="4">
+                                <label for="g3_4">Formalisée, régulièrement mise à jour</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_5" name="g3" value="5">
+                                <label for="g3_5">Robuste, alignée DAMA-DMBOK</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Budget planifié pour l'année data ?</label>
+                        <div class="question-context">63% des organisations camerounaises = zéro budget dédié (obstacle #1 du Livre Blanc)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g4_1" name="g4" value="1">
+                                <label for="g4_1">Non, 0 FCFA</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_2" name="g4" value="2">
+                                <label for="g4_2">Minimal, < 5M FCFA</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_3" name="g4" value="3">
+                                <label for="g4_3">Modéré, 5-20M FCFA</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_4" name="g4" value="4">
+                                <label for="g4_4">Substantiel, 20-100M FCFA</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_5" name="g4" value="5">
+                                <label for="g4_5">> 100M FCFA, stratégique</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 3: CULTURE & COMPÉTENCES -->
+                <div class="form-section">
+                    <h2 class="section-title">👥 Culture & Compétences (Axe 2)</h2>
+                    
+                    <div class="form-group">
+                        <label>Existe-t-il un Champion Data ou Lead Data ?</label>
+                        <div class="question-context">21% des organisations camerounaises = aucune personne dédiée</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c1_1" name="c1" value="1">
+                                <label for="c1_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_2" name="c1" value="2">
+                                <label for="c1_2">Oui, 1 personne isolée</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_3" name="c1" value="3">
+                                <label for="c1_3">Oui, avec support IT</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_4" name="c1" value="4">
+                                <label for="c1_4">Équipe data 2-5 personnes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_5" name="c1" value="5">
+                                <label for="c1_5">Centre d'excellence data</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>La Direction promeut-elle explicitement la data literacy ?</label>
+                        <div class="question-context">72 organisations camerounaises demandent formation massive (sondage IIBA 2025)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c2_1" name="c2" value="1">
+                                <label for="c2_1">Non, pas de sensibilisation</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_2" name="c2" value="2">
+                                <label for="c2_2">Messages sporadiques</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_3" name="c2" value="3">
+                                <label for="c2_3">Plans de formation basiques</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_4" name="c2" value="4">
+                                <label for="c2_4">Budget formation régulier</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_5" name="c2" value="5">
+                                <label for="c2_5">Académie data, certifications</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Au moins une personne peut-elle analyser des données (Excel, BI, SQL) ?</label>
+                        <div class="question-context">Seulement 9% des PME camerounaises ont certification internationale</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c3_1" name="c3" value="1">
+                                <label for="c3_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_2" name="c3" value="2">
+                                <label for="c3_2">Oui, basique Excel</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_3" name="c3" value="3">
+                                <label for="c3_3">Oui, Excel avancé + BI simple</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_4" name="c3" value="4">
+                                <label for="c3_4">Oui, BI + SQL + Python/R débutant</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_5" name="c3" value="5">
+                                <label for="c3_5">Oui, Data Scientists + Engineers certifiés</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Les collaborateurs comprennent-ils l'importance de la qualité données ?</label>
+                        <div class="question-context">80% des chiffres en réunion = non vérifiables (confession un banquier camerounais)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c4_1" name="c4" value="1">
+                                <label for="c4_1">Non, culture = "on rapporte vite"</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_2" name="c4" value="2">
+                                <label for="c4_2">Peu sensibilisés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_3" name="c4" value="3">
+                                <label for="c4_3">Partiellement sensibilisés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_4" name="c4" value="4">
+                                <label for="c4_4">Bien sensibilisés, feedback actif</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_5" name="c4" value="5">
+                                <label for="c4_5">Culture data omniprésente</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 4: QUALITÉ & ORGANISATION -->
+                <div class="form-section">
+                    <h2 class="section-title">📊 Qualité & Organisation (Axe 3)</h2>
+                    
+                    <div class="form-group">
+                        <label>Avez-vous confiance dans la qualité de vos données critiques ?</label>
+                        <div class="question-context">66% des organisations camerounaises = mauvaise qualité (obstacle #2)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q1_1" name="q1" value="1">
+                                <label for="q1_1">Non, données « sales » (doublons, incohérences)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_2" name="q1" value="2">
+                                <label for="q1_2">Partiellement, problèmes connus</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_3" name="q1" value="3">
+                                <label for="q1_3">Moyen, quelques sauvegardes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_4" name="q1" value="4">
+                                <label for="q1_4">Élevée, audit régulier</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_5" name="q1" value="5">
+                                <label for="q1_5">Très élevée, certifiée ISO 27001</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Les données sont-elles centralisées ou dispersées en silos ?</label>
+                        <div class="question-context">"Les données sont silotées : chaque département garde secret" (LB)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q2_1" name="q2" value="1">
+                                <label for="q2_1">Silos complets, pas de visibilité</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_2" name="q2" value="2">
+                                <label for="q2_2">Silos prédominants, partage ad-hoc</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_3" name="q2" value="3">
+                                <label for="q2_3">Partiellement centralisées (Excel, sheets)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_4" name="q2" value="4">
+                                <label for="q2_4">Data Warehouse/Lakehouse basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_5" name="q2" value="5">
+                                <label for="q2_5">Data Mesh fédéré, accès gouverné</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Existe-t-il un processus de nettoyage/validation des données ?</label>
+                        <div class="question-context">Processus = doublons, incohérences, valeurs manquantes</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q3_1" name="q3" value="1">
+                                <label for="q3_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_2" name="q3" value="2">
+                                <label for="q3_2">Ponctuel, manuel par utilisateur</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_3" name="q3" value="3">
+                                <label for="q3_3">Documenté, pas complètement automatisé</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_4" name="q3" value="4">
+                                <label for="q3_4">Automatisé, monitoring actif</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_5" name="q3" value="5">
+                                <label for="q3_5">Continu, IA-assisted, alertes temps réel</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Les données sont-elles documentées (définition, origine, responsable) ?</label>
+                        <div class="question-context">Métadonnées = dictionnaire données, lignage, propriétaire</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q4_1" name="q4" value="1">
+                                <label for="q4_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_2" name="q4" value="2">
+                                <label for="q4_2">Informel, dans les têtes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_3" name="q4" value="3">
+                                <label for="q4_3">Partiellement, Excel/sheets ad-hoc</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_4" name="q4" value="4">
+                                <label for="q4_4">Catalogue de données structuré</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_5" name="q4" value="5">
+                                <label for="q4_5">Outil MDM/Data Governance complet</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 5: OUTILS & INFRASTRUCTURE -->
+                <div class="form-section">
+                    <h2 class="section-title">🛠️ Outils & Infrastructure (Axe 4)</h2>
+                    
+                    <div class="form-group">
+                        <label>Utilisez-vous des outils BI (Power BI, Tableau, Looker) ou seulement Excel ?</label>
+                        <div class="question-context">Phase 1 PME = Excel OK, Phase 2 ETI = Power BI, Phase 3 = Tableau/Qlik</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t1_1" name="t1" value="1">
+                                <label for="t1_1">Aucun (données papier/verbal)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_2" name="t1" value="2">
+                                <label for="t1_2">Excel basique (tableaux, graphes simples)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_3" name="t1" value="3">
+                                <label for="t1_3">Excel avancé (TCD, macros)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_4" name="t1" value="4">
+                                <label for="t1_4">BI basique (Power BI ou Looker Studio)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_5" name="t1" value="5">
+                                <label for="t1_5">BI avancée (Tableau, Qlik, architecture data)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Où hébergez-vous vos données critiques ?</label>
+                        <div class="question-context">Infrastructure moderne vs souveraineté numérique. CamCloudGov en développement</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t2_1" name="t2" value="1">
+                                <label for="t2_1">Serveur local on-site, sans sauvegarde</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_2" name="t2" value="2">
+                                <label for="t2_2">Serveur local avec sauvegarde manuelle</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_3" name="t2" value="3">
+                                <label for="t2_3">Cloud étranger (AWS, Azure, Google)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_4" name="t2" value="4">
+                                <label for="t2_4">Cloud hybride (local + backup cloud)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_5" name="t2" value="5">
+                                <label for="t2_5">Prêt pour CamCloudGov (cloud souverain)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Votre connexion internet est-elle stable et suffisante ?</label>
+                        <div class="question-context">Cameroun = 30.46 Mbps moyen (rang 150/193) = insuffisant pour cloud temps réel</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t3_1" name="t3" value="1">
+                                <label for="t3_1">Non, < 10 Mbps, interruptions fréquentes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_2" name="t3" value="2">
+                                <label for="t3_2">Faible, 10-30 Mbps, acceptable basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_3" name="t3" value="3">
+                                <label for="t3_3">Moyen, 30-50 Mbps, correct</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_4" name="t3" value="4">
+                                <label for="t3_4">Bon, 50-100 Mbps, redondance</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_5" name="t3" value="5">
+                                <label for="t3_5">> 100 Mbps, fibre, SLA garanti</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 6: SÉCURITÉ & CONFORMITÉ -->
+                <div class="form-section">
+                    <h2 class="section-title">🔒 Sécurité & Conformité (Axe 5)</h2>
+                    
+                    <div class="form-group">
+                        <label>Connaissez-vous la Loi camerounaise 2024/017 sur la protection des données personnelles ?</label>
+                        <div class="question-context">Décembre 2024 : promulguée | Juin 2026 : effective (APD opérationnelle) | 40% du Cameroun l'ignore</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s1_1" name="s1" value="1">
+                                <label for="s1_1">Non, pas au courant</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s1_2" name="s1" value="2">
+                                <label for="s1_2">Vaguement, peu de détails</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s1_3" name="s1" value="3">
+                                <label for="s1_3">Oui, connaissances basiques</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s1_4" name="s1" value="4">
+                                <label for="s1_4">Oui, plan de conformité en cours</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s1_5" name="s1" value="5">
+                                <label for="s1_5">Oui, conformité avancée, audit externe</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Avez-vous des protections techniques (chiffrage, contrôle d'accès) ?</label>
+                        <div class="question-context">ISO 27001 = standard de sécurité obligatoire pour banques/assurances</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s2_1" name="s2" value="1">
+                                <label for="s2_1">Aucune</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_2" name="s2" value="2">
+                                <label for="s2_2">Basique (mots de passe simples)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_3" name="s2" value="3">
+                                <label for="s2_3">Modéré (chiffrage données, ID/MDP forts)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_4" name="s2" value="4">
+                                <label for="s2_4">Élevé (chiffrage + MFA + logs)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_5" name="s2" value="5">
+                                <label for="s2_5">ISO 27001 certifiée</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Les collaborateurs reçoivent-ils une formation sur la cybersécurité ?</label>
+                        <div class="question-context">38% ne se sentent pas formés à Loi 2024-017 (sondage LB)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s3_1" name="s3" value="1">
+                                <label for="s3_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_2" name="s3" value="2">
+                                <label for="s3_2">Ad-hoc, pas systématique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_3" name="s3" value="3">
+                                <label for="s3_3">Annuelle, basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_4" name="s3" value="4">
+                                <label for="s3_4">Trimestrielle, incluant Loi 2024-017</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_5" name="s3" value="5">
+                                <label for="s3_5">Continue, simulation, certifications</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Votre organisation gère-t-elle explicitement le consentement et la conservation des données ?</label>
+                        <div class="question-context">Loi 2024-017 : consentement explicite, droit d'oubli, conservation limitée</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s4_1" name="s4" value="1">
+                                <label for="s4_1">Non, pas de politique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s4_2" name="s4" value="2">
+                                <label for="s4_2">Informel, implicite</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s4_3" name="s4" value="3">
+                                <label for="s4_3">Partiellement, quelques règles</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s4_4" name="s4" value="4">
+                                <label for="s4_4">Documentée, respectée</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s4_5" name="s4" value="5">
+                                <label for="s4_5">Conforme Loi 2024-017, auditée</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 7: EXPLOITATION & VALEUR -->
+                <div class="form-section">
+                    <h2 class="section-title">📈 Exploitation & Valeur (Axe 6)</h2>
+                    
+                    <div class="form-group">
+                        <label>Utilisez-vous des tableaux de bord pour suivre vos KPIs métier ?</label>
+                        <div class="question-context">Tableaux de bord simples = 1 indicateur–1 graphique, mis à jour mensuellement</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e1_1" name="e1" value="1">
+                                <label for="e1_1">Non</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_2" name="e1" value="2">
+                                <label for="e1_2">Oui, Excel statique, manuels</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_3" name="e1" value="3">
+                                <label for="e1_3">Oui, Google Sheets partagés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_4" name="e1" value="4">
+                                <label for="e1_4">Oui, BI simples, mise à jour régulière</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_5" name="e1" value="5">
+                                <label for="e1_5">Oui, dashboards temps réel, mobiles</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mesurez-vous l'impact business des données (économies, CA, efficacité) ?</label>
+                        <div class="question-context">ROI data = réduction coûts, augmentation revenus, accélération décisions</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e2_1" name="e2" value="1">
+                                <label for="e2_1">Non, pas de mesure</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_2" name="e2" value="2">
+                                <label for="e2_2">Partiellement, impressions</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_3" name="e2" value="3">
+                                <label for="e2_3">Quelques cas d'usage chiffrés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_4" name="e2" value="4">
+                                <label for="e2_4">ROI systématique par projet</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_5" name="e2" value="5">
+                                <label for="e2_5">Data = ligne budgétaire rentable</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Utilisez-vous ou envisagez-vous l'analyse prédictive ?</label>
+                        <div class="question-context">Prédictif = ML, churn, ventes prévisionnelles (Phase 2-3 du LB)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e3_1" name="e3" value="1">
+                                <label for="e3_1">Non, pas à l'agenda</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e3_2" name="e3" value="2">
+                                <label for="e3_2">En exploration, budget non alloué</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e3_3" name="e3" value="3">
+                                <label for="e3_3">POC en cours, résultats préliminaires</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e3_4" name="e3" value="4">
+                                <label for="e3_4">Production, plusieurs cas d'usage</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e3_5" name="e3" value="5">
+                                <label for="e3_5">IA/ML opérateur, à grande échelle</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Les données permettent-elles d'améliorer vos produits/services ?</label>
+                        <div class="question-context">Exemple : banques = produits adaptés clients, santé = anticipation besoins</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e4_1" name="e4" value="1">
+                                <label for="e4_1">Non, innovations indépendantes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e4_2" name="e4" value="2">
+                                <label for="e4_2">Rarement, cas isolés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e4_3" name="e4" value="3">
+                                <label for="e4_3">Parfois, insights data intégrés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e4_4" name="e4" value="4">
+                                <label for="e4_4">Systématique, processus formalisé</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e4_5" name="e4" value="5">
+                                <label for="e4_5">Data-driven innovation, avantage compétitif</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 8: QUESTIONS CONTEXTUELLES -->
+                <div id="adminSection" class="form-section hidden">
+                    <h2 class="section-title">🏛️ Gouvernance Numérique (Secteur Public)</h2>
+                    <p style="margin-bottom: 20px; color: #666; font-size: 0.95em;">Questions adaptées à votre contexte administratif</p>
+                </div>
+                
+                <!-- BOUTONS -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn">📊 Analyser mon Maturité</button>
+                    <button type="reset" class="btn btn-secondary">Effacer</button>
+                </div>
+            </form>
+            </div>
+            
+            <!-- TAB 2: RÉSULTATS -->
+            <div id="results" class="tab-content">
+            <div id="resultsContainer" class="results-container" style="display: block !important;">
+                <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">📊 Résultats de Votre Diagnostic</h2>
+                
+                <div class="score-card">
+                    <div class="score-number" id="levelScore">3.2</div>
+                    <div class="score-label">
+                        <span id="levelName">Opérationnel</span><br>
+                        <span style="font-size: 0.8em; opacity: 0.9;" id="levelDesc">Données reconnues comme actif stratégique</span>
+                    </div>
+                </div>
+                
+                <div class="benchmark-section">
+                    <div class="benchmark-title">📍 Votre Positionnement</div>
+                    <div class="benchmark-item">
+                        <span>Votre score :</span>
+                        <strong id="yourScore">3.2 / 5</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Moyenne nationale (Cameroun) :</span>
+                        <strong style="color: #27ae60;">2.65 / 5</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Pairs même secteur :</span>
+                        <strong id="sectorAvg">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Taille organisation :</span>
+                        <strong id="sizeAvg">-</strong>
+                    </div>
+                </div>
+                
+                <div class="benchmark-section">
+                    <div class="benchmark-title">🎯 Axes détaillés (par question)</div>
+                    <div class="benchmark-item">
+                        <span>Gouvernance & Vision :</span>
+                        <strong id="axisG">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Culture & Compétences :</span>
+                        <strong id="axisC">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Qualité & Organisation :</span>
+                        <strong id="axisQ">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Outils & Infrastructure :</span>
+                        <strong id="axisT">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Sécurité & Conformité :</span>
+                        <strong id="axisS">-</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Exploitation & Valeur :</span>
+                        <strong id="axisE">-</strong>
+                    </div>
+                </div>
+                
+                <div class="recommendations-section">
+                    <div class="rec-title">🚀 Recommandations Personnalisées</div>
+                    <div id="recsContainer"></div>
+                </div>
+                
+                <div id="roadmapSection" class="chart"></div>
+                
+                <div class="source-footer">
+                    <strong>📚 Source Méthodologie</strong><br>
+                    Cet outil est issu du <strong>Livre Blanc « La donnée, nouveau pétrole de la compétitivité »</strong> piloté par le <strong>GECAM</strong> avec l'appui de l'<strong>IIBA Cameroun</strong> (2025).<br>
+                    Les recommandations sont alignées sur les <strong>bonnes pratiques nationales</strong> et le référentiel <strong>DAMA-DMBOK</strong>.<br>
+                    <a href="https://www.iiba-cameroon.org/" target="_blank">→ Consulter le Livre Blanc complet</a>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="resetAssessment();">← Recommencer</button>
+                    <button class="btn btn-print" onclick="window.print();">🖨️ Imprimer Résultats</button>
+                </div>
+            </div>
+            </div>
+            
+            <!-- TAB 3: RAPPORT ENQUÊTE NATIONALE -->
+            <div id="rapport" class="tab-content">
+                <h2 style="color: var(--color-primary-dark); margin-bottom: 20px; text-align: center;">📈 Enquête Nationale IIBA Cameroun - GECAM 2024-2025</h2>
+                
+                <div class="rapport-card">
+                    <h4>🎯 Vue d'ensemble</h4>
+                    <p><strong>120 organisations sondées</strong> (Finance, Santé, Agriculture, Télécoms, Commerce, Admin publique)</p>
+                    <p style="margin-top: 10px;"><strong>Maturité Data moyenne nationale :</strong> <span style="color: var(--color-accent-orange); font-weight: bold;">2.65 / 5</span> (niveau <strong>Émergent</strong>)</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="number">64%</div>
+                        <div class="label">jugent données essentielles</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">18%</div>
+                        <div class="label">utilisent data systématiquement</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">63%</div>
+                        <div class="label">= zéro budget data</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">79%</div>
+                        <div class="label">manque compétences</div>
+                    </div>
+                </div>
+                
+                <div class="rapport-card">
+                    <h4>🚨 Top 5 Obstacles Identifiés</h4>
+                    <div class="obstacle-item">
+                        <span class="rang">1</span>
+                        <span class="nom">Absence de budget dédié</span>
+                        <span class="pourcentage">63%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Manque ressources financières allouées à la data</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">2</span>
+                        <span class="nom">Mauvaise qualité des données</span>
+                        <span class="pourcentage">66%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Doublons, incohérences, données silotées</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">3</span>
+                        <span class="nom">Manque de compétences</span>
+                        <span class="pourcentage">79%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Absence personnel formé à l'analyse data</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">4</span>
+                        <span class="nom">Culture managériale freine adoption</span>
+                        <span class="pourcentage">75%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Mentalité « on n'a pas de temps, on réagit urgences »</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">5</span>
+                        <span class="nom">Infrastructure insuffisante</span>
+                        <span class="pourcentage">55%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Connexion internet faible, systèmes info fragmentés</p>
+                    </div>
+                </div>
+                
+                <div class="rapport-card">
+                    <h4>📊 Maturité par Secteur</h4>
+                    <table class="sector-table">
+                        <thead>
+                            <tr>
+                                <th>Secteur</th>
+                                <th style="text-align: center;">Orgas</th>
+                                <th style="text-align: center;">Maturité avg</th>
+                                <th>Budget avg</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Télécoms & Énergie</strong></td>
+                                <td style="text-align: center;">22</td>
+                                <td style="text-align: center;"><span style="color: var(--color-success); font-weight: bold;">3.2/5</span></td>
+                                <td>80M FCFA</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Finance & Assurances</strong></td>
+                                <td style="text-align: center;">28</td>
+                                <td style="text-align: center;"><span style="color: var(--color-success); font-weight: bold;">2.8/5</span></td>
+                                <td>15M FCFA</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Commerce & Distribution</strong></td>
+                                <td style="text-align: center;">20</td>
+                                <td style="text-align: center;">2.4/5</td>
+                                <td>12M FCFA</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Santé & Pharma</strong></td>
+                                <td style="text-align: center;">18</td>
+                                <td style="text-align: center;">2.1/5</td>
+                                <td>5M FCFA</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Admin & Secteur Public</strong></td>
+                                <td style="text-align: center;">17</td>
+                                <td style="text-align: center;">1.8/5</td>
+                                <td>3M FCFA</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Agriculture</strong></td>
+                                <td style="text-align: center;">15</td>
+                                <td style="text-align: center;">1.6/5</td>
+                                <td>2M FCFA</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="rapport-card" style="background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%); color: white;">
+                    <h4 style="color: white;">🎯 Priorités Stratégiques Nationales</h4>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Gouvernance Données Personnelles (APD)</strong> – URGENCE HAUTE – Loi 2024-017 effective juin 2026</li>
+                        <li><strong>Formation Data Literacy massive</strong> – 72 organisations demandent – Timeline 12 mois</li>
+                        <li><strong>Quick Wins Data</strong> – Démontrer ROI rapidement – Horizon 3 mois</li>
+                        <li><strong>Infrastructure Modernisée (CamCloudGov)</strong> – Souveraineté numérique – Timeline 24 mois</li>
+                    </ul>
+                </div>
+                
+                <div class="source-footer">
+                    <strong>📚 Source Données</strong><br>
+                    Rapport d'Enquête Analytique <strong>IIBA Cameroun - GECAM</strong> (2024-2025)<br>
+                    <strong>120 organisations sondées</strong> | Méthodologie DAMA-DMBOK<br>
+                    Ce rapport a servi de base au <strong>Livre Blanc « La donnée, nouveau pétrole de la compétitivité »</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <strong>FEMA DATA Tool v1.3</strong>
+                    <p>Évaluation Maturité Données | IIBA Cameroun - GECAM</p>
+                </div>
+                
+                <div class="footer-links">
+                    <a href="https://cameroon.iiba.org/" target="_blank">🌐 Site IIBA Cameroun</a>
+                    <a href="https://www.linkedin.com/company/iiba-cameroon-chapter" target="_blank">💼 LinkedIn IIBA</a>
+                    <a href="https://legecam.cm/" target="_blank">🤝 GECAM</a>
+                </div>
+                
+                <div class="footer-section">
+                    <strong>Méthodologie</strong>
+                    <p>Cet outil s'appuie sur le <strong>Livre Blanc « La donnée, nouveau pétrole de la compétitivité »</strong> (2025) et le référentiel <strong>DAMA-DMBOK</strong>.</p>
+                </div>
+                
+                <div class="footer-social">
+                    <a href="https://www.linkedin.com/company/iiba-cameroon-chapter" target="_blank">LinkedIn</a>
+                    <span style="color: rgba(255,255,255,0.3);">•</span>
+                    <a href="https://cameroon.iiba.org/" target="_blank">Contact IIBA</a>
+                </div>
+                
+                <div class="footer-copyright">
+                    © 2025 IIBA Cameroun Chapter | Tous droits réservés | 
+                    <a href="https://cameroon.iiba.org/privacy-policy" target="_blank">Confidentialité</a> | 
+                    <a href="https://cameroon.iiba.org/cookie-policy" target="_blank">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ SYSTÈME ONGLETS ============
+        function switchTab(tabName) {
+            // Masquer tous les onglets
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Désactiver tous les boutons
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Afficher onglet demandé
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activer bouton correspondant
+            event.target.classList.add('active');
+            
+            // Scroll vers haut
+            window.scrollTo(0, 0);
+        }
+        
+        function resetAssessment() {
+            document.getElementById('assessmentForm').reset();
+            switchTab('assessment');
+        }
+        
+        // ============ DONNÉES COMPLÈTES ============
+        
+        // Nomenclature unifiée Livre Blanc
+        const levelNames = {
+            1: "Initial",
+            2: "Émergent",
+            3: "Opérationnel",
+            4: "Avancé",
+            5: "Excellence"
+        };
+        
+        const levelDescriptions = {
+            1: "Pas de vision, réactive, intuition dominante, Excel silos. État actuel majorité PME Cameroun.",
+            2: "Quick Wins, BI simple, prise de conscience, premiers succès isolés.",
+            3: "Data Warehouse, équipe 2-5 personnes, données actif stratégique reconnu.",
+            4: "Gouvernance opérationnelle, qualité mesurée, automatisation, culture data-driven.",
+            5: "Culture data omniprésente, IA/ML industrialisés, Data as Product, innovation continue."
+        };
+        
+        // Recommandations Niveaux 1-5 (Progressives)
+        const recommendations = {
+            short: {
+                1: [
+                    "Désigner un Champion Data (même mi-temps possible)",
+                    "Lancer 1 Quick Win : nettoyer 1 dataset critique",
+                    "Former leadership 1 demi-jour sur valeur data",
+                    "Sécuriser l'essentiel : accès, mots de passe forts"
+                ],
+                2: [
+                    "Mettre en place Data Warehouse/Lakehouse basique",
+                    "Structurer équipe 2-5 personnes",
+                    "Créer Comité Data formalisé (Direction, Finance, IT, Métiers)",
+                    "Gouvernance formelle écrite (rôles, droits, responsabilités)"
+                ],
+                3: [
+                    "Déployer BI moderne (Power BI, Tableau)",
+                    "Créer Centre d'Excellence Data (formation, standards)",
+                    "Mettre en place catalogue de données (métadonnées)",
+                    "Audit conformité Loi 2024-017"
+                ],
+                4: [
+                    "Architecture data avancée (Data Mesh, Lakehouse optimisé)",
+                    "Gouvernance données décentralisée par domaine",
+                    "Projets analytics prédictifs",
+                    "Leadership data-driven transversal"
+                ],
+                5: [
+                    "Data as a Product organisationnel",
+                    "Innovation continue IA/ML opérationnel",
+                    "Externaliser expertise data (services)",
+                    "Positionnement leader secteur"
+                ]
+            },
+            medium: {
+                1: [
+                    "Déployer BI pour Finance + Ventes (Power BI ou Looker Studio)",
+                    "Recruter 1 Data Analyst",
+                    "Aligner ISO 27001 basique",
+                    "Former équipe à BI et sécurité données"
+                ],
+                2: [
+                    "Gouvernance Data Mesh : responsabilisation par métiers",
+                    "Créer Centre d'Excellence Data",
+                    "Architecture cloud-native progressive",
+                    "Projets analytics pilots (churn, ventes, coûts)"
+                ],
+                3: [
+                    "Implémenter Data Governance formelle (DAMA)",
+                    "Créer Data Lake/Warehouse optimisé",
+                    "Mettre en place Master Data Management (MDM)",
+                    "Conformité RGPD/Loi 2024-017 complète"
+                ],
+                4: [
+                    "Culture data-driven omniprésente",
+                    "Advanced analytics ML en production",
+                    "Real-time decision support",
+                    "Alignement stratégique État/secteur"
+                ],
+                5: [
+                    "Économie données souveraine",
+                    "Écosystème data inter-organisationnel",
+                    "Innovation stratégique secteur",
+                    "Leadership thought leadership Afrique"
+                ]
+            },
+            long: {
+                1: [
+                    "Évaluer ROI data (économies, revenus)",
+                    "Optimiser processus métier via données",
+                    "Monétiser données (vente, partage)",
+                    "Innover produits/services (ex : produits adaptés clients)"
+                ],
+                2: [
+                    "Data as a Product interne",
+                    "Sécurité avancée + SOC",
+                    "Certification complète (IIBA, certifications data)",
+                    "Innovation continue (nouveaux usages data)"
+                ],
+                3: [
+                    "Transformation business model via data",
+                    "Créer avantage compétitif distinctif",
+                    "Montisation données B2B",
+                    "Leadership innovation secteur"
+                ],
+                4: [
+                    "Plateforme data ecosystem régional",
+                    "Intelligence artificielle native",
+                    "Real-time decision engine",
+                    "Valeur ajoute maximale"
+                ],
+                5: [
+                    "Souveraineté données nationale (CamCloudGov)",
+                    "Plateforme data panafricaine",
+                    "Exportation expertise data",
+                    "Modèle référence Afrique Centrale"
+                ]
+            }
+        };
+        
+        // Budgets par taille et niveau (Livre Blanc)
+        const budgetsBySize = {
+            tpe: {
+                name: "TPE/PME (< 50 emp)",
+                1: { short: "0.5-1.5M", medium: "1-3M", long: "2-5M" },
+                2: { short: "1-3M", medium: "2-5M", long: "3-8M" },
+                3: { short: "2-5M", medium: "3-8M", long: "5-10M" },
+                4: { short: "3-8M", medium: "5-12M", long: "8-15M" },
+                5: { short: "5-10M", medium: "8-15M", long: "12-20M" }
+            },
+            eti: {
+                name: "PME/ETI (50-500 emp)",
+                1: { short: "5-10M", medium: "10-20M", long: "15-30M" },
+                2: { short: "10-20M", medium: "20-50M", long: "30-80M" },
+                3: { short: "20-40M", medium: "40-80M", long: "60-120M" },
+                4: { short: "40-80M", medium: "80-150M", long: "120-200M" },
+                5: { short: "80-150M", medium: "150-300M", long: "200-400M" }
+            },
+            ge: {
+                name: "Grande Entreprise (> 500 emp)",
+                1: { short: "20-50M", medium: "50-100M", long: "100-200M" },
+                2: { short: "50-100M", medium: "100-200M", long: "200-400M" },
+                3: { short: "100-200M", medium: "200-400M", long: "400-800M" },
+                4: { short: "200-400M", medium: "400-800M", long: "800M-2B" },
+                5: { short: "400-800M", medium: "800M-2B", long: "2B+" }
+            },
+            admin: {
+                name: "Administration/Public",
+                1: { short: "2-5M", medium: "5-10M", long: "10-15M" },
+                2: { short: "5-10M", medium: "10-20M", long: "15-30M" },
+                3: { short: "10-20M", medium: "20-40M", long: "30-60M" },
+                4: { short: "20-40M", medium: "40-80M", long: "60-120M" },
+                5: { short: "40-80M", medium: "80-150M", long: "120-250M" }
+            }
+        };
+        
+        // ============ LOGIQUE DU FORMULAIRE ============
+        
+        const form = document.getElementById('assessmentForm');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateScore();
+        });
+        
+        function getFormDataValues() {
+            const questions = [
+                ['g1', 'g2', 'g3', 'g4'],  // Gouvernance
+                ['c1', 'c2', 'c3', 'c4'],  // Culture
+                ['q1', 'q2', 'q3', 'q4'],  // Qualité
+                ['t1', 't2', 't3'],         // Outils (3 Q seulement)
+                ['s1', 's2', 's3', 's4'],  // Sécurité
+                ['e1', 'e2', 'e3', 'e4']   // Exploitation
+            ];
+            
+            const scores = [];
+            questions.forEach(axis => {
+                const values = axis.map(q => {
+                    const el = document.querySelector(`input[name="${q}"]:checked`);
+                    return el ? parseInt(el.value) : 0;
+                }).filter(v => v > 0);
+                
+                if (values.length > 0) {
+                    scores.push(values.reduce((a,b) => a+b) / values.length);
+                } else {
+                    scores.push(0);
+                }
+            });
+            
+            return scores;
+        }
+        
+        function calculateScore() {
+            const scores = getFormDataValues();
+            const globalScore = scores.reduce((a,b) => a+b) / scores.length;
+            const level = Math.ceil(globalScore);
+            
+            const orgType = document.getElementById('orgType').value;
+            
+            displayResults(globalScore, level, scores, orgType);
+        }
+        
+        function displayResults(globalScore, level, axisScores, orgType) {
+            const safeLevel = Math.min(Math.max(level, 1), 5);
+            
+            // Mise à jour score card
+            document.getElementById('levelScore').textContent = globalScore.toFixed(1);
+            document.getElementById('levelName').textContent = levelNames[safeLevel];
+            document.getElementById('levelDesc').textContent = levelDescriptions[safeLevel];
+            document.getElementById('yourScore').textContent = globalScore.toFixed(1) + ' / 5';
+            
+            // Axes
+            const axisLabels = ['Gouvernance', 'Culture', 'Qualité', 'Outils', 'Sécurité', 'Exploitation'];
+            axisLabels.forEach((label, i) => {
+                const elementId = 'axis' + label.charAt(0).toUpperCase();
+                const el = document.getElementById(elementId);
+                if (el) {
+                    el.textContent = (axisScores[i] || 0).toFixed(1) + ' / 5';
+                }
+            });
+            
+            // Recommandations
+            const shortRecs = recommendations.short[safeLevel] || recommendations.short[2];
+            const mediumRecs = recommendations.medium[safeLevel] || recommendations.medium[2];
+            const longRecs = recommendations.long[safeLevel] || recommendations.long[2];
+            
+            let recsHTML = `
+                <div class="rec-horizon">
+                    <h4>⚡ Court Terme (1-3 mois)</h4>
+                    <ul>
+                        ${shortRecs.map(r => `<li>${r}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="rec-horizon">
+                    <h4>📈 Moyen Terme (3-12 mois)</h4>
+                    <ul>
+                        ${mediumRecs.map(r => `<li>${r}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="rec-horizon">
+                    <h4>🎯 Long Terme (12-24+ mois)</h4>
+                    <ul>
+                        ${longRecs.map(r => `<li>${r}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('recsContainer').innerHTML = recsHTML;
+            
+            // Roadmap budgétaire
+            const sizeKey = orgType || 'eti';
+            const sizeData = budgetsBySize[sizeKey];
+            const budgetForLevel = sizeData[safeLevel];
+            
+            let roadmapHTML = `
+                <h4>💰 Roadmap Budgétaire 12 mois</h4>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+                    <strong>Taille :</strong> ${sizeData.name}<br>
+                    <strong>Niveau :</strong> ${safeLevel} - ${levelNames[safeLevel]}
+                </p>
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #667eea;">
+                    <div class="benchmark-item">
+                        <span>T1 (Court terme 0-3 mois) :</span>
+                        <strong>${budgetForLevel.short} FCFA</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>T2-T3 (Moyen terme 3-12 mois) :</span>
+                        <strong>${budgetForLevel.medium} FCFA</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Long terme (12+ mois) :</span>
+                        <strong>${budgetForLevel.long} FCFA</strong>
+                    </div>
+                    <p style="font-size: 0.85em; color: #666; margin-top: 10px; font-style: italic;">
+                        ℹ️ Les budgets sont progressifs par phase, pas cumulatifs annuels.
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('roadmapSection').innerHTML = roadmapHTML;
+            
+            // Afficher résultats
+            document.getElementById('assessmentForm').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
