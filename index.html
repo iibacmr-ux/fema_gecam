@@ -3,28 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refined and Updated FEMA Questions</title>
+    <title>FEMA GECAM</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
     <header>
-        <h1>FEMA GECAM Questions and Answers</h1>
+        <h1>FEMA GECAM Platform</h1>
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
     </header>
+
     <main>
-        <section id="category-1">
-            <h2>Category 1: General Information</h2>
-            <p>Clarified details about FEMA's general policies and procedures.</p>
+        <section id="home">
+            <h2>Welcome to FEMA GECAM</h2>
+            <p>Interactive platform for effective and enriched functionality.</p>
         </section>
-        <section id="category-2">
-            <h2>Category 2: Procedures</h2>
-            <p>Reformulated questions to improve understanding and added detailed examples.</p>
+
+        <section id="about">
+            <h2>About Us</h2>
+            <p>FEMA GECAM provides optimized solutions for disaster management and planning.</p>
         </section>
-        <section id="category-3">
-            <h2>Category 3: Assistance Programs</h2>
-            <p>Updated the numbering of programs and incorporated cross-references for clarity.</p>
+
+        <section id="services">
+            <h2>Our Services</h2>
+            <ul>
+                <li>Data Integration</li>
+                <li>Risk Analysis</li>
+                <li>Simulation Models</li>
+            </ul>
+        </section>
+
+        <section id="contact">
+            <h2>Contact Us</h2>
+            <form>
+                <label for="name">Name</label>
+                <input type="text" id="name" name="user_name" required>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="user_email" required>
+
+                <label for="message">Message</label>
+                <textarea id="message" name="user_message" required></textarea>
+
+                <button type="submit">Send</button>
+            </form>
         </section>
     </main>
+
     <footer>
-        <p>Last updated: January 2026</p>
+        <p>&copy; 2026 FEMA GECAM. All Rights Reserved.</p>
     </footer>
 </body>
 </html>
