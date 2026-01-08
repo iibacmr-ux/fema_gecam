@@ -1,64 +1,1992 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FEMA GECAM</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <title>FEMA DATA Tool v1.4 - Évaluation Maturité Données + Readiness RGPD 2024-017</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ===== PALETTE IIBA CAMEROUN ===== */
+        :root {
+            --color-primary-dark: #003d66;      
+            --color-primary-light: #0056a8;     
+            --color-accent-orange: #FF6B35;     
+            --color-secondary-gray: #757575;    
+            --color-light-gray: #f5f5f5;        
+            --color-white: #ffffff;
+            --color-success: #27ae60;
+            --color-warning: #f39c12;
+            --color-danger: #e74c3c;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #1a5f8d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #1a5f8d 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 4px solid var(--color-accent-orange);
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-iiba {
+            height: 50px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--color-accent-orange);
+        }
+        
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.95;
+        }
+        
+        .header-version {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            margin-bottom: 35px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .section-number {
+            display: inline-block;
+            background: var(--color-accent-orange);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-subtitle {
+            font-size: 0.9em;
+            color: var(--color-secondary-gray);
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .question-number {
+            display: inline-block;
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin-right: 8px;
+            font-size: 0.9em;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .question-context {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 8px;
+            border-left: 3px solid var(--color-accent-orange);
+            border-radius: 3px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .radio-option:hover {
+            background: #ecf0f1;
+            border-color: var(--color-accent-orange);
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--color-accent-orange);
+        }
+        
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--color-accent-orange);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-light-gray);
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-secondary-gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+        
+        .tab-button.active {
+            color: white;
+            background: var(--color-primary-dark);
+            border-bottom-color: var(--color-accent-orange);
+        }
+        
+        .tab-button:hover {
+            background: var(--color-light-gray);
+            color: var(--color-primary-dark);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--color-accent-orange) 0%, #ff8c42 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--color-secondary-gray);
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(117, 117, 117, 0.3);
+        }
+        
+        .btn-print {
+            background: var(--color-primary-dark);
+            margin-left: 10px;
+        }
+        
+        .btn-print:hover {
+            box-shadow: 0 10px 20px rgba(0, 61, 102, 0.3);
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-top: 4px solid var(--color-accent-orange);
+        }
+        
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .compliance-alert {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #fff;
+        }
+        
+        .compliance-alert h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .compliance-alert p {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        
+        .compliance-score {
+            background: white;
+            color: var(--color-primary-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        
+        .benchmark-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-accent-orange);
+        }
+        
+        .rapport-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-primary-dark);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rapport-card h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+        
+        .rapport-card p {
+            color: var(--color-secondary-gray);
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .obstacle-item {
+            background: #fef3f0;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--color-accent-orange);
+        }
+        
+        .obstacle-item .rang {
+            display: inline-block;
+            background: var(--color-accent-orange);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.85em;
+        }
+        
+        .obstacle-item .nom {
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin-right: 10px;
+        }
+        
+        .obstacle-item .pourcentage {
+            color: var(--color-accent-orange);
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 3px solid var(--color-accent-orange);
+        }
+        
+        .stat-box .number {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box .label {
+            font-size: 0.85em;
+            opacity: 0.95;
+        }
+        
+        .rgpd-step {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--color-accent-orange);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rgpd-step h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 12px;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: var(--color-accent-orange);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .rgpd-step ul {
+            margin-left: 20px;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+        
+        .sector-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .sector-table th {
+            background: var(--color-primary-dark);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .sector-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-light-gray);
+            font-size: 0.9em;
+        }
+        
+        .sector-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .sector-table tr:hover {
+            background: #f0f8ff;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .tabs, .tab-button, .btn-print, .btn-secondary {
+                display: none;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .score-card {
+                page-break-inside: avoid;
+            }
+            
+            .rec-horizon {
+                page-break-inside: avoid;
+            }
+            
+            .recommendations-section {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .benchmark-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .benchmark-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.95em;
+        }
+        
+        .benchmark-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recommendations-section {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .rec-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .rec-horizon {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--color-accent-orange);
+        }
+        
+        .rec-horizon h4 {
+            color: var(--color-primary-dark);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        
+        .rec-horizon ul {
+            margin-left: 20px;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .source-footer {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--color-primary-dark);
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--color-primary-dark);
+        }
+        
+        .source-footer a {
+            color: var(--color-primary-dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .source-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .chart {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .chart h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .section-title {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                min-width: 120px;
+                padding: 12px 15px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>FEMA GECAM Platform</h1>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section id="home">
-            <h2>Welcome to FEMA GECAM</h2>
-            <p>Interactive platform for effective and enriched functionality.</p>
-        </section>
-
-        <section id="about">
-            <h2>About Us</h2>
-            <p>FEMA GECAM provides optimized solutions for disaster management and planning.</p>
-        </section>
-
-        <section id="services">
-            <h2>Our Services</h2>
-            <ul>
-                <li>Data Integration</li>
-                <li>Risk Analysis</li>
-                <li>Simulation Models</li>
-            </ul>
-        </section>
-
-        <section id="contact">
-            <h2>Contact Us</h2>
-            <form>
-                <label for="name">Name</label>
-                <input type="text" id="name" name="user_name" required>
-
-                <label for="email">Email</label>
-                <input type="email" id="email" name="user_email" required>
-
-                <label for="message">Message</label>
-                <textarea id="message" name="user_message" required></textarea>
-
-                <button type="submit">Send</button>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <img src="Cameroon_DkTeal-Orange_Event_245x200.png" alt="IIBA Logo" class="logo-iiba">
+                <div>
+                    <h1>FEMA DATA Tool v1.4</h1>
+                    <p>Évaluation Maturité Données + Readiness RGPD 2024-017</p>
+                    <p class="header-version">Entrée en vigueur : 23 juin 2026 | Amende maximale : 50M FCFA</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('assessment')">📋 Diagnostic Complet</button>
+            <button class="tab-button" onclick="switchTab('results')">📊 Résultats</button>
+            <button class="tab-button" onclick="switchTab('rapport')">📑 Enquête Nationale</button>
+            <button class="tab-button" onclick="switchTab('rgpd')">🔒 RGPD 2024-017</button>
+        </div>
+        
+        <div class="content">
+            <!-- TAB 1: FORMULAIRE DIAGNOSTIC COMPLET -->
+            <div id="assessment" class="tab-content active">
+            <form id="assessmentForm">
+                <!-- SECTION 1: PROFIL DE L'ORGANISATION -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">1</span>
+                        📋 Profil de votre organisation
+                    </h2>
+                    <p class="section-subtitle">Aidez-nous à contextualiser votre évaluation</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">1.1</span> Type d'organisation *</label>
+                        <div class="question-context">Exemple : PME (30 personnes) ou Grande Banque (500+ personnes)</div>
+                        <select id="orgType" name="orgType" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="tpe">TPE / PME (< 50 employés)</option>
+                            <option value="eti">PME / ETI (50 – 500 employés)</option>
+                            <option value="ge">Grande entreprise (> 500 employés)</option>
+                            <option value="admin">Administration / Organisme public</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">1.2</span> Secteur d'activité *</label>
+                        <div class="question-context">Choisir celui qui représente le mieux votre activité principale</div>
+                        <select id="sector" name="sector" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="finance">Finance & Assurances</option>
+                            <option value="sante">Santé & Pharmaceutique</option>
+                            <option value="agri">Agriculture & Agro-industrie</option>
+                            <option value="telecom">Télécoms & Énergie</option>
+                            <option value="commerce">Commerce & Distribution</option>
+                            <option value="admin">Administration & Secteur public</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">1.3</span> Budget annuel approximatif dédié à la donnée (Data, BI, Gouvernance, Sécurité) *</label>
+                        <div class="question-context">Exemple PME : 3-10M FCFA | ETI : 60-150M | Grandes : 300M-2Md</div>
+                        <select id="budget" name="budget" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="0">0 FCFA – Aucun budget dédié</option>
+                            <option value="1_5">1 à 5 M FCFA</option>
+                            <option value="5_10">5 à 10 M FCFA</option>
+                            <option value="10_20">10 à 20 M FCFA</option>
+                            <option value="20_100">20 à 100 M FCFA</option>
+                            <option value="100_plus">Plus de 100 M FCFA</option>
+                            <option value="unknown">Je ne sais pas</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- SECTION 2: GOUVERNANCE & STRATÉGIE -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">2</span>
+                        🎯 Gouvernance & Stratégie des données
+                    </h2>
+                    <p class="section-subtitle">Comment vos décisions sont-elles prises et par qui?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">2.1</span> Vos décisions stratégiques sont-elles basées sur l'analyse de données fiables ?</label>
+                        <div class="question-context">Exemple : Avant d'ouvrir une nouvelle agence, analysez-vous les données de clientèle ? Ou vous décidez en réunion ?</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g1_1" name="g1" value="1">
+                                <label for="g1_1">Non, nos décisions se font par intuition ou en réunion</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_2" name="g1" value="2">
+                                <label for="g1_2">Rarement, juste quelques cas ponctuels</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_3" name="g1" value="3">
+                                <label for="g1_3">Parfois, c'est un mélange (données + intuition)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_4" name="g1" value="4">
+                                <label for="g1_4">Souvent, nous avons une approche data-driven</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g1_5" name="g1" value="5">
+                                <label for="g1_5">Systématiquement, notre culture est centrée sur les données</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">2.2</span> Qui est la personne en charge de définir et de suivre la stratégie des données ?</label>
+                        <div class="question-context">Exemple : Chief Data Officer, Responsable IT, Manager Analytique, ou personne n'a vraiment ce rôle</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g2_1" name="g2" value="1">
+                                <label for="g2_1">Personne n'a vraiment ce rôle, c'est flou</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_2" name="g2" value="2">
+                                <label for="g2_2">Le rôle est flou, plusieurs personnes impliquées sans coordination</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_3" name="g2" value="3">
+                                <label for="g2_3">Chef IT + Métiers travaillent ensemble sur la stratégie</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_4" name="g2" value="4">
+                                <label for="g2_4">Direction + IT + Responsable Data officialisé</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g2_5" name="g2" value="5">
+                                <label for="g2_5">Chief Data Officer ou équivalent reconnu par la Direction</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">2.3</span> Votre organisation a-t-elle une politique écrite de gouvernance des données ?</label>
+                        <div class="question-context">Politique = un document officiel décrivant les responsabilités, l'accès aux données, les droits, les règles de qualité</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g3_1" name="g3" value="1">
+                                <label for="g3_1">Non, aucune politique écrite</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_2" name="g3" value="2">
+                                <label for="g3_2">Esquisse informelle (quelques notes, pas officiel)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_3" name="g3" value="3">
+                                <label for="g3_3">Basique et écrite, mais rarement mise à jour</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_4" name="g3" value="4">
+                                <label for="g3_4">Formalisée, mise à jour annuellement</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g3_5" name="g3" value="5">
+                                <label for="g3_5">Robuste et conforme aux standards DAMA-DMBOK</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">2.4</span> Budget annuel planifié et alloué explicitement pour la transformation data ?</label>
+                        <div class="question-context">Le budget data est rarement isolé d'autres postes IT. Est-il séparé et identifiable ?</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="g4_1" name="g4" value="1">
+                                <label for="g4_1">Non, 0 FCFA budget data</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_2" name="g4" value="2">
+                                <label for="g4_2">Minimal, < 5M FCFA, pas vraiment isolé du budget IT</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_3" name="g4" value="3">
+                                <label for="g4_3">Modéré, 5-20M FCFA, commencé à identifier</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_4" name="g4" value="4">
+                                <label for="g4_4">Substantiel, 20-100M FCFA, clairement identifié</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="g4_5" name="g4" value="5">
+                                <label for="g4_5">> 100M FCFA, budget stratégique affecté à la data</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 3: CULTURE & COMPÉTENCES -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">3</span>
+                        👥 Culture & Compétences
+                    </h2>
+                    <p class="section-subtitle">Vos équipes sont-elles prêtes pour la transformation data ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">3.1</span> Existe-t-il un Champion Data ou responsable dédié à la donnée ?</label>
+                        <div class="question-context">Le champion peut être à temps plein ou à 50%. L'important : une personne nommée et reconnue</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c1_1" name="c1" value="1">
+                                <label for="c1_1">Non, personne n'en est responsable</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_2" name="c1" value="2">
+                                <label for="c1_2">Oui, 1 personne isolée (pas de support)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_3" name="c1" value="3">
+                                <label for="c1_3">Oui, 1 Champion + support IT minimal</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_4" name="c1" value="4">
+                                <label for="c1_4">Oui, équipe data 2-5 personnes formées</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c1_5" name="c1" value="5">
+                                <label for="c1_5">Centre d'excellence data officiel (CoE)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">3.2</span> La Direction promeut-elle explicitement la formation et la culture data ?</label>
+                        <div class="question-context">Formation = budget formation, sessions obligatoires, communication du leadership sur l'importance de la data</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c2_1" name="c2" value="1">
+                                <label for="c2_1">Non, pas de sensibilisation visuelle</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_2" name="c2" value="2">
+                                <label for="c2_2">Rare, messages sporadiques</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_3" name="c2" value="3">
+                                <label for="c2_3">Basique, quelques plans de formation lancés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_4" name="c2" value="4">
+                                <label for="c2_4">Régulier, budget formation affecté annuellement</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c2_5" name="c2" value="5">
+                                <label for="c2_5">Académie data interne, certifications financées</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">3.3</span> Au moins une personne peut-elle analyser des données (Excel, BI, SQL) ?</label>
+                        <div class="question-context">Exemple : créer un pivot-table, utiliser Power BI, écrire une requête SQL</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c3_1" name="c3" value="1">
+                                <label for="c3_1">Non, personne n'a ces compétences</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_2" name="c3" value="2">
+                                <label for="c3_2">Oui, Excel basique (copies, graphes simples)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_3" name="c3" value="3">
+                                <label for="c3_3">Oui, Excel avancé (TCD, macros) + BI simple</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_4" name="c3" value="4">
+                                <label for="c3_4">Oui, BI (Power BI/Looker) + SQL débutant + Python/R basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c3_5" name="c3" value="5">
+                                <label for="c3_5">Oui, Data Scientists certifiés + Ingénieurs données</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">3.4</span> Vos collaborateurs comprennent-ils pourquoi la qualité des données est importante ?</label>
+                        <div class="question-context">Exemple : savent-ils qu'une donnée mal saisie cause des erreurs ? Qu'un doublon crée des risques ?</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="c4_1" name="c4" value="1">
+                                <label for="c4_1">Non, culture = "on rapporte vite, on n'a pas le temps"</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_2" name="c4" value="2">
+                                <label for="c4_2">Peu sensibilisés, pas d'actions concrètes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_3" name="c4" value="3">
+                                <label for="c4_3">Partiellement sensibilisés, quelques retours reçus</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_4" name="c4" value="4">
+                                <label for="c4_4">Bien sensibilisés, retours actifs et utilisés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="c4_5" name="c4" value="5">
+                                <label for="c4_5">Culture data omniprésente, chacun comprend son rôle</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 4: QUALITÉ & ORGANISATION DES DONNÉES -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">4</span>
+                        📊 Qualité & Organisation des Données
+                    </h2>
+                    <p class="section-subtitle">Qu'est-ce que vous savez de vos données ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">4.1</span> Avez-vous confiance dans la qualité de vos données critiques ?</label>
+                        <div class="question-context">Données critiques = client, ventes, finances, ressources humaines. Sont-elles propres ou y a-t-il doublons, incohérences ?</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q1_1" name="q1" value="1">
+                                <label for="q1_1">Non, nos données sont très "sales" (doublons, erreurs visibles)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_2" name="q1" value="2">
+                                <label for="q1_2">Partiellement, nous connaissons les problèmes mais on traîne</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_3" name="q1" value="3">
+                                <label for="q1_3">Moyen, nous avons quelques sauvegardes et contrôles basiques</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_4" name="q1" value="4">
+                                <label for="q1_4">Élevée, audits réguliers, incidents rares</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q1_5" name="q1" value="5">
+                                <label for="q1_5">Très élevée, certifiée ISO 27001, zéro incident</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">4.2</span> Où sont actuellement vos données (centralisées ou en silos) ?</label>
+                        <div class="question-context">Silos = Finance a ses données, Ventes les siennes, RH les siennes, sans partage. Centralisée = 1 endroit accessible</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q2_1" name="q2" value="1">
+                                <label for="q2_1">Silos complets, chaque département garde secret</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_2" name="q2" value="2">
+                                <label for="q2_2">Silos prédominants, partage rare et ad-hoc</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_3" name="q2" value="3">
+                                <label for="q2_3">Partiellement centralisées (Excel, Google Sheets partagés)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_4" name="q2" value="4">
+                                <label for="q2_4">Data Warehouse ou Lakehouse basique (tous accès au même endroit)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q2_5" name="q2" value="5">
+                                <label for="q2_5">Data Mesh fédéré, chacun accède à ce dont il a besoin avec droits</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">4.3</span> Avez-vous un processus régulier de nettoyage et validation des données ?</label>
+                        <div class="question-context">Processus = actions pour enlever doublons, corriger incohérences, remplir valeurs manquantes, systématiquement</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q3_1" name="q3" value="1">
+                                <label for="q3_1">Non, on ne nettoie jamais</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_2" name="q3" value="2">
+                                <label for="q3_2">Ponctuel, quand ça pose problème, manuel par utilisateur</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_3" name="q3" value="3">
+                                <label for="q3_3">Documenté, semi-automatisé, pas systématique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_4" name="q3" value="4">
+                                <label for="q3_4">Automatisé avec monitoring actif et alertes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q3_5" name="q3" value="5">
+                                <label for="q3_5">Continu et intelligent, IA-assisted, alertes temps réel</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">4.4</span> Les données sont-elles documentées (dictionnaire, origine, propriétaire) ?</label>
+                        <div class="question-context">Documentation = quelqu'un sait d'où vient chaque donnée, ce qu'elle signifie, qui la maintient</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="q4_1" name="q4" value="1">
+                                <label for="q4_1">Non, les données ne sont pas documentées</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_2" name="q4" value="2">
+                                <label for="q4_2">Informel, dans les têtes, pas écrit</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_3" name="q4" value="3">
+                                <label for="q4_3">Partiellement, Excel/sheets ad-hoc, pas complet</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_4" name="q4" value="4">
+                                <label for="q4_4">Catalogue de données structuré et maintenu</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="q4_5" name="q4" value="5">
+                                <label for="q4_5">Outil MDM/Data Governance complet + méta-données auto</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 5: OUTILS & INFRASTRUCTURE -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">5</span>
+                        🛠️ Outils & Infrastructure
+                    </h2>
+                    <p class="section-subtitle">Quelle technologie utilisez-vous pour exploiter vos données ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">5.1</span> Utilisez-vous des outils BI (Power BI, Tableau) ou seulement Excel ?</label>
+                        <div class="question-context">BI = Business Intelligence. Exemple Excel : graphes manuels | Exemple BI : dashboards temps réel mis à jour auto</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t1_1" name="t1" value="1">
+                                <label for="t1_1">Aucun, données en papier ou emails</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_2" name="t1" value="2">
+                                <label for="t1_2">Excel basique (copies, graphes, formules simples)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_3" name="t1" value="3">
+                                <label for="t1_3">Excel avancé (Pivot-tables, macros, VBA)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_4" name="t1" value="4">
+                                <label for="t1_4">BI basique (Power BI Desktop ou Looker Studio)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t1_5" name="t1" value="5">
+                                <label for="t1_5">BI avancée (Tableau, Qlik, architecture data mûre)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">5.2</span> Où hébergez-vous vos données critiques ?</label>
+                        <div class="question-context">Serveur local = dans votre bureau | Cloud = AWS, Azure, Google | CamCloudGov = cloud souverain camerounais</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t2_1" name="t2" value="1">
+                                <label for="t2_1">Serveur local on-site, sans sauvegarde</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_2" name="t2" value="2">
+                                <label for="t2_2">Serveur local avec sauvegarde manuelle (USB, disque dur)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_3" name="t2" value="3">
+                                <label for="t2_3">Cloud étranger (AWS, Azure, Google Cloud)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_4" name="t2" value="4">
+                                <label for="t2_4">Cloud hybride (local + backup cloud automatique)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t2_5" name="t2" value="5">
+                                <label for="t2_5">Prêt pour CamCloudGov (infrastructure souveraine)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">5.3</span> Votre connexion internet est-elle stable et suffisante ?</label>
+                        <div class="question-context">Cameroun moyenne = 30 Mbps. < 10 Mbps = problème pour cloud. > 100 Mbps = excellent pour cloud temps réel</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="t3_1" name="t3" value="1">
+                                <label for="t3_1">Non, < 10 Mbps, déconnexions fréquentes</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_2" name="t3" value="2">
+                                <label for="t3_2">Faible, 10-30 Mbps, acceptable basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_3" name="t3" value="3">
+                                <label for="t3_3">Moyen, 30-50 Mbps, correct pour applications</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_4" name="t3" value="4">
+                                <label for="t3_4">Bon, 50-100 Mbps, avec redondance</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="t3_5" name="t3" value="5">
+                                <label for="t3_5">> 100 Mbps, fibre, SLA garanti</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 6: SÉCURITÉ & CONFORMITÉ (EXISTANT) -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">6</span>
+                        🔒 Sécurité & Conformité (Générale)
+                    </h2>
+                    <p class="section-subtitle">Disposez-vous des bases de sécurité de vos données ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">6.1</span> Avez-vous des protections techniques pour vos données (chiffrage, contrôle d'accès) ?</label>
+                        <div class="question-context">Exemple basique : mots de passe | Exemple avancé : chiffrage données + authentification MFA (2 facteurs)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s2_1" name="s2" value="1">
+                                <label for="s2_1">Aucune, données accessibles sans restrictions</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_2" name="s2" value="2">
+                                <label for="s2_2">Basique (mots de passe simples)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_3" name="s2" value="3">
+                                <label for="s2_3">Modéré (chiffrage données + ID/MDP forts)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_4" name="s2" value="4">
+                                <label for="s2_4">Élevé (chiffrage + MFA + logs)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s2_5" name="s2" value="5">
+                                <label for="s2_5">ISO 27001 certifiée</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">6.2</span> Les collaborateurs reçoivent-ils une formation sur la cybersécurité ?</label>
+                        <div class="question-context">Formation = sessions obligatoires sur les bonnes pratiques (ne pas partager mots de passe, méfiance phishing, etc)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="s3_1" name="s3" value="1">
+                                <label for="s3_1">Non, aucune formation</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_2" name="s3" value="2">
+                                <label for="s3_2">Ad-hoc, pas systématique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_3" name="s3" value="3">
+                                <label for="s3_3">Annuelle basique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_4" name="s3" value="4">
+                                <label for="s3_4">Trimestrielle, incluant simulation</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="s3_5" name="s3" value="5">
+                                <label for="s3_5">Continue, simulation, certifications</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 7: READINESS RGPD 2024-017 (NOUVEAU) -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">7</span>
+                        🔐 Readiness RGPD 2024-017 (Loi Camerounaise)
+                    </h2>
+                    <p class="section-subtitle">Êtes-vous prêt pour la conformité avant le 23 juin 2026 ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">7.1</span> Connaissez-vous la Loi camerounaise 2024/017 sur la protection des données personnelles ?</label>
+                        <div class="question-context">Promulguée décembre 2024 | Effective 23 juin 2026 | Amende maximale : 50M FCFA</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="r1_1" name="r1" value="1">
+                                <label for="r1_1">Non, pas au courant du tout</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r1_2" name="r1" value="2">
+                                <label for="r1_2">Vaguement entendu parler, peu de détails</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r1_3" name="r1" value="3">
+                                <label for="r1_3">Oui, connaissances basiques, vu la version complète</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r1_4" name="r1" value="4">
+                                <label for="r1_4">Oui, plan de conformité en cours</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r1_5" name="r1" value="5">
+                                <label for="r1_5">Oui, conformité avancée, audit externe prévu</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">7.2</span> Avez-vous un Responsable Protection Données (DPO) ou équivalent nommé ?</label>
+                        <div class="question-context">DPO = Data Protection Officer. Peut être une personne existante désignée ou une personne dédiée</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="r2_1" name="r2" value="1">
+                                <label for="r2_1">Non, aucun responsable</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r2_2" name="r2" value="2">
+                                <label for="r2_2">Non, mais nous réfléchissons à le nommer</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r2_3" name="r2" value="3">
+                                <label for="r2_3">Oui, responsable nommé mais sans ressources</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r2_4" name="r2" value="4">
+                                <label for="r2_4">Oui, DPO nommé avec rôle défini</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r2_5" name="r2" value="5">
+                                <label for="r2_5">Oui, DPO formé, équipe dédiée, registre tenu</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">7.3</span> Comment gérez-vous actuellement la destruction de vos données (CV, contrats, factures, archives) ?</label>
+                        <div class="question-context">Exemple mauvais : poubelle de bureau (Erreur #1) | Exemple bon : broyeur NSA + certificat + registre</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="r3_1" name="r3" value="1">
+                                <label for="r3_1">Poubelle de bureau, pas de processus</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r3_2" name="r3" value="2">
+                                <label for="r3_2">Broyeur standard (bandelettes), pas de preuve</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r3_3" name="r3" value="3">
+                                <label for="r3_3">Destruction ponctuelle, sans documentation</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r3_4" name="r3" value="4">
+                                <label for="r3_4">Destruction régulière, certificats reçus mais pas de registre</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r3_5" name="r3" value="5">
+                                <label for="r3_5">Destruction NSA P-6 + certificat + registre tenu (Art.29)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">7.4</span> Conservez-vous vos données au-delà de la période nécessaire (archives "au cas où") ?</label>
+                        <div class="question-context">Erreur #2 : CV employés 2010 + factures 2012+ = violation Art.13 (conservation excessive)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="r4_1" name="r4" value="1">
+                                <label for="r4_1">Oui, archives débordent, délais OHADA expirés depuis longtemps</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r4_2" name="r4" value="2">
+                                <label for="r4_2">Oui, mais nous soupçonnons le problème</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r4_3" name="r4" value="3">
+                                <label for="r4_3">Partiellement, quelques archives à nettoyer</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r4_4" name="r4" value="4">
+                                <label for="r4_4">Non, politique de conservation claire mais pas écrite</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r4_5" name="r4" value="5">
+                                <label for="r4_5">Non, politique écrite + destruction régulière appliquée</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">7.5</span> Avez-vous une politique écrite de gestion et destruction des données personnelles ?</label>
+                        <div class="question-context">Politique = document officiel décrivant comment on collecte, traite, conserve, détruit les données (CVs, contrats, fiches paie)</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="r5_1" name="r5" value="1">
+                                <label for="r5_1">Non, aucune politique</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r5_2" name="r5" value="2">
+                                <label for="r5_2">Esquisse informelle, pas officielle</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r5_3" name="r5" value="3">
+                                <label for="r5_3">Basique et écrite, mais peu appliquée</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r5_4" name="r5" value="4">
+                                <label for="r5_4">Formalisée, mise à jour annuellement, partiellement appliquée</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="r5_5" name="r5" value="5">
+                                <label for="r5_5">Robuste, appliquée rigoureusement, formation continues</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION 8: EXPLOITATION & VALEUR -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <span class="section-number">8</span>
+                        📈 Exploitation & Valeur des Données
+                    </h2>
+                    <p class="section-subtitle">Tirez-vous réellement de la valeur de vos données ?</p>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">8.1</span> Utilisez-vous des tableaux de bord (dashboards) pour suivre vos KPIs métier ?</label>
+                        <div class="question-context">Exemple : tableau de bord finance temps réel, scorecard ventes par région, monitoring opérationnel</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e1_1" name="e1" value="1">
+                                <label for="e1_1">Non, aucun tableau de bord</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_2" name="e1" value="2">
+                                <label for="e1_2">Oui, Excel statique et mis à jour manuellement</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_3" name="e1" value="3">
+                                <label for="e1_3">Oui, Google Sheets partagés, mis à jour régulièrement</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_4" name="e1" value="4">
+                                <label for="e1_4">Oui, BI simples (Power BI), mise à jour régulière</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e1_5" name="e1" value="5">
+                                <label for="e1_5">Oui, dashboards temps réel, mobiles, alertes</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><span class="question-number">8.2</span> Mesurez-vous l'impact business des données (économies, CA supplémentaire, efficacité) ?</label>
+                        <div class="question-context">Exemple : "Grâce aux données, nous avons réduit coûts fraude de 40%", ou "CA +15% via ciblage clients"</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="e2_1" name="e2" value="1">
+                                <label for="e2_1">Non, pas de mesure</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_2" name="e2" value="2">
+                                <label for="e2_2">Partiellement, impressions générales</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_3" name="e2" value="3">
+                                <label for="e2_3">Quelques cas d'usage chiffrés</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_4" name="e2" value="4">
+                                <label for="e2_4">ROI systématique par projet, suivi annuel</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="e2_5" name="e2" value="5">
+                                <label for="e2_5">Data = ligne budgétaire rentable, ROI prouvé & visible</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BOUTONS -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn">📊 Analyser votre Maturité + RGPD</button>
+                    <button type="reset" class="btn btn-secondary">Réinitialiser</button>
+                </div>
             </form>
-        </section>
-    </main>
+            </div>
+            
+            <!-- TAB 2: RÉSULTATS (à remplir dynamiquement) -->
+            <div id="results" class="tab-content">
+            <div id="resultsContainer" class="results-container" style="display: block !important;">
+                <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">📊 Résultats de Votre Diagnostic</h2>
+                
+                <div class="score-card">
+                    <div class="score-number" id="levelScore">3.2</div>
+                    <div class="score-label">
+                        <span id="levelName">Opérationnel</span><br>
+                        <span style="font-size: 0.8em; opacity: 0.9;" id="levelDesc">Données reconnues comme actif stratégique</span>
+                    </div>
+                </div>
+                
+                <div id="complianceAlertContainer"></div>
+                
+                <div class="benchmark-section">
+                    <div class="benchmark-title">📍 Positionnement & Benchmark</div>
+                    <div class="benchmark-item">
+                        <span>Votre score Data Maturity :</span>
+                        <strong id="yourScore">3.2 / 5</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Moyenne nationale (Cameroun) :</span>
+                        <strong style="color: #27ae60;">2.65 / 5</strong>
+                    </div>
+                    <div id="benchmarkContextContainer"></div>
+                </div>
+                
+                <div class="recommendations-section">
+                    <div class="rec-title">🚀 Plan d'Action Recommandé (3 Horizons)</div>
+                    <div id="recsContainer"></div>
+                </div>
+                
+                <div id="roadmapSection" class="chart"></div>
+                
+                <div id="rgpdPlanSection" class="chart"></div>
+                
+                <div class="source-footer">
+                    <strong>📚 Source Méthodologie</strong><br>
+                    Cet outil est issu du <strong>Livre Blanc sur la donnée</strong>, piloté par le <strong>GECAM</strong> avec l'appui de l'<strong>IIBA Cameroun</strong> (2025).<br>
+                    <a href="https://prc.cm/fr/multimedia/documents/10258-loi-n-2024-017-du-23-12-2024-web" target="_blank">Loi n° 2024/017 du 23 décembre 2024</a> : L'Autorité de Protection des Données à caractère Personnel (APDP) n'est pas encore pleinement opérationnelle. L'application effective de la loi est prévue pour le 23 juin 2026. Elle aura pour rôle principal de veiller à la confidentialité, à la sécurité et à la protection des données personnelles des individus.<br>
+                    Les organisations (publiques et privées) ont jusqu'au 23 juin 2026 pour se conformer pleinement à cette nouvelle réglementation.<br>
+                    Avant cette réforme, des aspects de la régulation numérique étaient partiellement gérés par l'ANTIC (Agence Nationale des Technologies de l'Information et de la Communication), spécialisée dans la cybersécurité, ou la CDHC (Commission des Droits de l'Homme du Cameroun) pour les libertés fondamentales.
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="resetAssessment();">← Recommencer</button>
+                    <button class="btn btn-print" onclick="window.print();">🖨️ Imprimer Résultats</button>
+                </div>
+            </div>
+            </div>
+            
+            <!-- TAB 3: RAPPORT ENQUÊTE NATIONALE -->
+            <div id="rapport" class="tab-content">
+                <h2 style="color: var(--color-primary-dark); margin-bottom: 20px; text-align: center;">📈 Enquête Nationale IIBA Cameroun - GECAM 2024-2025</h2>
+                
+                <div class="rapport-card">
+                    <h4>🎯 Vue d'ensemble</h4>
+                    <p><strong>120 organisations sondées</strong> (Finance, Santé, Agriculture, Télécoms, Commerce, Admin publique)</p>
+                    <p style="margin-top: 10px;"><strong>Maturité Data moyenne nationale :</strong> <span style="color: var(--color-accent-orange); font-weight: bold;">2.65 / 5</span> (niveau <strong>Émergent</strong>)</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="number">64%</div>
+                        <div class="label">jugent données essentielles</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">18%</div>
+                        <div class="label">utilisent data systématiquement</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">63%</div>
+                        <div class="label">= zéro budget data</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number">79%</div>
+                        <div class="label">manque compétences</div>
+                    </div>
+                </div>
+                
+                <div class="rapport-card">
+                    <h4>🚨 Top 5 Obstacles Identifiés</h4>
+                    <div class="obstacle-item">
+                        <span class="rang">1</span>
+                        <span class="nom">Absence de budget dédié</span>
+                        <span class="pourcentage">63%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Manque ressources financières allouées à la data</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">2</span>
+                        <span class="nom">Mauvaise qualité des données</span>
+                        <span class="pourcentage">66%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Doublons, incohérences, données silotées</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">3</span>
+                        <span class="nom">Manque de compétences</span>
+                        <span class="pourcentage">79%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Absence personnel formé à l'analyse data</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">4</span>
+                        <span class="nom">Culture managériale freine adoption</span>
+                        <span class="pourcentage">75%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Mentalité « on n'a pas de temps, on réagit urgences »</p>
+                    </div>
+                    <div class="obstacle-item">
+                        <span class="rang">5</span>
+                        <span class="nom">Infrastructure insuffisante</span>
+                        <span class="pourcentage">55%</span>
+                        <p style="margin-top: 8px; margin-bottom: 0; color: #555; font-size: 0.85em;">Connexion internet faible, systèmes info fragmentés</p>
+                    </div>
+                </div>
+                
+                <div class="source-footer">
+                    <strong>📚 Source Données</strong><br>
+                    Rapport d'Enquête Analytique <strong>IIBA Cameroun - GECAM</strong> (2024-2025)<br>
+                    <strong>120 organisations sondées</strong> | Méthodologie DAMA-DMBOK
+                </div>
+            </div>
+            
+            <!-- TAB 4: RGPD 2024-017 CAMEROUN -->
+            <div id="rgpd" class="tab-content">
+                <h2 style="color: var(--color-primary-dark); margin-bottom: 20px; text-align: center;">🔐 Loi 2024-017 : RGPD Camerounais - Conformité & Readiness</h2>
+                
+                <div class="compliance-alert">
+                    <h3>⚠️ ALERTE : Entrée en Vigueur 23 Juin 2026</h3>
+                    <p><strong>Amende maximale : 50 millions FCFA</strong></p>
+                    <p>3 erreurs courantes rendent 90% des entreprises camerounaises non-conformes.</p>
+                    <p style="margin-top: 10px; font-size: 0.9em;" id="timeRemainingInfo">Il vous reste du temps pour vous mettre en conformité.</p>
+                </div>
+                
+                <div class="rapport-card">
+                    <h4>❌ 3 Erreurs Concrètes Interdites par la Loi 2024-017</h4>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">1</span> La Poubelle de Bureau (Violation Article 27)</h4>
+                    <p><strong>Le Problème :</strong> CV, devis client, convention de crédit, fiche de paie jetés à la poubelle</p>
+                    <p style="margin-top: 8px;"><strong>La Violation :</strong> Article 27 oblige à "empêcher que des tiers non autorisés y aient accès". Une poubelle = accès non autorisé.</p>
+                    <p style="margin-top: 8px;"><strong>Conséquence :</strong> Amende jusqu'à 50M FCFA, responsabilité civile, atteinte à la réputation.</p>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">2</span> Conserver "Au Cas Où" (Violation Article 13)</h4>
+                    <p><strong>Le Problème :</strong> Archives débordent : RH employés 2010 | Factures 2012+ | Délais OHADA expirés depuis longtemps</p>
+                    <p style="margin-top: 8px;"><strong>La Violation :</strong> Article 13 interdit de conserver au-delà de la "période nécessaire à leur traitement".</p>
+                    <p style="margin-top: 8px;"><strong>Conséquence :</strong> Faute grave. Destruction obligatoire. Amende. Responsabilité criminelle pour les dirigeants.</p>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">3</span> Destruction sans Preuve (Violation Article 29)</h4>
+                    <p><strong>Le Problème :</strong> Broyeur standard (coupe en bandelettes) SansAucun certificat | Pas de registre | Destruction informelle</p>
+                    <p style="margin-top: 8px;"><strong>La Violation Double :</strong></p>
+                    <ul>
+                        <li>Broyage non sécurisé (reconstitution possible) - Article 27</li>
+                        <li>Aucune preuve de destruction - Article 29 oblige à "tenir un registre". Sans certificat légal, votre registre est vide.</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>Conséquence :</strong> En cas d'audit APD, vous ne pouvez pas prouver votre conformité. Amende maximale.</p>
+                </div>
+                
+                <div class="rapport-card" style="background: linear-gradient(135deg, var(--color-primary-dark) 0%, #0056a8 100%); color: white;">
+                    <h4 style="color: white;">✅ Plan de Conformité en 3 Étapes (Avant 23 Juin 2026)</h4>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">1</span> Étape 1 : L'Audit (Diagnostic) - Mois 1-3</h4>
+                    <p><strong>Objectif :</strong> Vous ne pouvez pas protéger ce que vous ne connaissez pas.</p>
+                    <p style="margin-top: 8px;"><strong>Actions concrètes :</strong></p>
+                    <ul>
+                        <li>Identifier TOUTES les données collectées (CV, CNI, contrats, fiches paie)</li>
+                        <li>Cartographier où elles sont (serveurs, armoires, archives physiques)</li>
+                        <li>Documenter qui y a accès (collaborateurs, tiers)</li>
+                        <li>Clarifier délais conservation légaux (OHADA = 10 ans, Code Travail, etc)</li>
+                        <li>Évaluer processus destruction actuel (poubelle ? broyeur ? rien ?)</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>Coût estimé :</strong> 500K-2M FCFA (audit interne + consultant si besoin)</p>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">2</span> Étape 2 : La Politique (Cadre) - Mois 3-6</h4>
+                    <p><strong>Objectif :</strong> Créer une Politique de Protection et Destruction des Données = 1ère ligne de défense légale.</p>
+                    <p style="margin-top: 8px;"><strong>Actions concrètes :</strong></p>
+                    <ul>
+                        <li>Rédiger Politique Protection Données (1-2 pages claires)</li>
+                        <li>Définir Politique Destruction (CVs : 3 ans après départ | Contrats : 10 ans OHADA | Fiches paie : 5 ans)</li>
+                        <li>Nommer responsable ou DPO (Data Protection Officer)</li>
+                        <li>Diffuser politique + former collaborateurs (formation obligatoire)</li>
+                        <li>Documenter : "Ne rien jeter à la poubelle", broyeur sécurisé, certificat + registre</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>Coût estimé :</strong> 200K-500K FCFA (conseil juridique + formation)</p>
+                </div>
+                
+                <div class="rgpd-step">
+                    <h4><span class="step-number">3</span> Étape 3 : L'Action (Exécution) - Mois 6-18</h4>
+                    <p><strong>Objectif :</strong> Mettre en place destruction SÉCURISÉE et TRAÇABLE (c'est la partie CRITIQUE).</p>
+                    <p style="margin-top: 8px;"><strong>Actions concrètes :</strong></p>
+                    <ul>
+                        <li><strong>Immédiat :</strong> Nettoyer archives actuelles (détruire archives > délai légal)</li>
+                        <li><strong>Destruction Sécurisée :</strong> Niveau NSA P-6 recommandé (irréversible)</li>
+                        <li><strong>Traçabilité :</strong> Prestataire fourni certificat + registre détruit</li>
+                        <li><strong>Régularité :</strong> Destruction 1-2x/an pour éviter accumulation risques</li>
+                        <li><strong>Documentation :</strong> Garder certificats = preuve de conformité pour audit APD</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>Coût estimé (annuel) :</strong> 1-2M FCFA destruction sécurisée</p>
+                </div>
+                
+                <div class="rapport-card">
+                    <h4>🎯 Qui Doit Faire Quoi ?</h4>
+                    <ul>
+                        <li><strong>Direction :</strong> Approuver politique, allouer budget, former collaborateurs</li>
+                        <li><strong>DPO (Data Protection Officer) :</strong> Coordonner conformité, audits internes, registre</li>
+                        <li><strong>IT :</strong> Chiffrage données, contrôle accès, traçabilité</li>
+                        <li><strong>RH :</strong> Archives personnel conforme, destruction à la retraite</li>
+                        <li><strong>Finance :</strong> Factures destruction sécurisées, archivage conforme OHADA</li>
+                        <li><strong>Admin :</strong> Destruction papiers clients, contrats, devis sécurisées</li>
+                    </ul>
+                </div>
+                
+                <div class="source-footer">
+                    <strong>🔗 Ressources Légales</strong><br>
+                    <a href="https://www.apd.cm/" target="_blank">Autorité Protection Données Cameroun (APD) →</a><br>
+                    Loi 2024-017 entrée en vigueur : 23 juin 2026 | Amende : 50M FCFA max<br>
+                    Contact APD : +237 242 123 456 (exemple)
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <footer>
-        <p>&copy; 2026 FEMA GECAM. All Rights Reserved.</p>
-    </footer>
+    <script>
+        // ============ SYSTÈME ONGLETS ============
+        function switchTab(tabName) {
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+            
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        function resetAssessment() {
+            document.getElementById('assessmentForm').reset();
+            document.getElementById('assessmentForm').style.display = 'block';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('complianceAlertContainer').innerHTML = '';
+            document.getElementById('recsContainer').innerHTML = '';
+            document.getElementById('roadmapSection').innerHTML = '';
+            switchTab('assessment');
+            window.scrollTo(0, 0);
+        }
+        
+        // ============ DONNÉES NIVEAUX MATURITÉ ============
+        
+        const levelNames = {
+            1: "Initial",
+            2: "Émergent",
+            3: "Opérationnel",
+            4: "Avancé",
+            5: "Excellence"
+        };
+        
+        const levelDescriptions = {
+            1: "Réactive, intuitive, silos dominants. Pas de budget data. État actuel majorité PME Cameroun.",
+            2: "Quick Wins simples, BI basique, prise de conscience. Premiers succès isolés.",
+            3: "Data Warehouse formalisé, équipe 2-5 personnes. Data reconnue comme actif stratégique.",
+            4: "Gouvernance opérationnelle, qualité mesurée, automatisation. Culture data-driven forte.",
+            5: "Culture data omniprésente. IA/ML industrialisés. Data as Product. Innovation continue."
+        };
+        
+        // Recommandations Niveaux 1-5
+        const recommendations = {
+            short: {
+                1: ["1. Nommez immédiatement votre Champion Data (CDO, Responsable IT + Manager Finance) - peut être mi-temps\n2. Lancez 1 Quick Win rapide : nettoyez votre 1er dataset critique en 2-3 semaines (économies ou vitesse décision immédiate)\n3. Organisez séance d'information 1h du leadership sur la valeur data\n4. Implémentez authentification + mots de passe forts sur accès données"],
+                2: ["1. Déployez Data Warehouse/Lakehouse cloud (CamCloudGov ou AWS)\n2. Structurez équipe 2-5 personnes (1 Data Architect + 2 Data Engineers + 1 Analyst)\n3. Créez Comité Data officiel (Direction + Finance + IT + Métiers) - réunion mensuelle\n4. Rédigez & validez Gouvernance écrite (rôles, droits, responsabilités, SLA)"],
+                3: ["1. Déployez BI moderne (Power BI ou Tableau) pour dashboards temps réel\n2. Lancez Centre d'Excellence Data (formation, standards, COE governance)\n3. Mettez en place Catalogue Métadonnées (inventaire données, qualité)\n4. Menez Audit RGPD complet 2024-017 (destruction, conservation)"],
+                4: ["1. Implémentez Data Mesh avancée (domaines autonomes)\n2. Établissez Gouvernance décentralisée par domaine (ownership clair)\n3. Lancez projets prédictifs ML production (scoring, churn, fraude)\n4. Créez leadership data transversal (data evangelist par direction)"],
+                5: ["1. Constituez équipe Data as Product (produits données internes)\n2. Opérationnalisez IA/ML pour décisions critiques\n3. Lancez services data externalisés (B2B)\n4. Positionnez votre org comme leader secteur en données (publications, talks)"]
+            },
+            medium: {
+                1: ["1. Déployez BI pour Finance + Ventes (Power BI studio ou Tableau)\n2. Recrutez 1 Data Analyst expérimenté (ou formez un interne)\n3. Mettez en place ISO 27001 niveau basique (audit, politique, formation)\n4. Formez équipe BI (Power BI, SQL basics, bonnes pratiques)"],
+                2: ["1. Implémentez Data Mesh par métiers (ownership, autonomie)\n2. Créez Centre d'Excellence Data (standards, formations, certification)\n3. Migrez graduellement vers cloud-native (serverless, managed services)\n4. Lancez pilots analytiques (churn analysis, customer segmentation, fraud detection)"],
+                3: ["1. Formalisez Data Governance DAMA (DMBOK framework)\n2. Optimisez Data Lake/Warehouse pour scalabilité + performance\n3. Déployez Master Data Management (MDM) pour données référence\n4. Assurez conformité RGPD 2024-017 complète (destruction automatisée, registre)"],
+                4: ["1. Instillez culture data-driven systématique (métriques partout)\n2. Déployez ML avancé en production (prédictif, recommandation, optimisation)\n3. Mettez en place real-time decision support (scoring instantané)\n4. Alignez stratégie data avec État/secteur (données publiques, collaborations)"],
+                5: ["1. Développez économie données souveraine (données African-first)\n2. Créez écosystème data inter-org (partage sécurisé, APIs)\n3. Lancez innovation stratégique secteur (nouveaux business models data)\n4. Établissez thought leadership Afrique (recherche, publications, conférences)"]
+            },
+            long: {
+                1: ["1. Évaluez ROI data de chaque projet (avant/après)\n2. Optimisez processus opérationnels via données\n3. Monétisez données (vente insights, services analytics)\n4. Innovez produits/services basés sur données (new revenue streams)"],
+                2: ["1. Constituez équipe Data as Product (services internes payants)\n2. Sécurisez avancé + SOC (Security Operations Center data)\n3. Obtenez certifications IIBA, IBM, AWS Data certifications\n4. Cultivez innovation continue (hackathons data, innovation labs)"],
+                3: ["1. Transformez business model via données (de vente produit à vente insights)\n2. Créez avantage compétitif distinctif (data you have, competitors don't)\n3. Monétisez B2B (vendre insights, data products à partenaires)\n4. Devenez leader en innovation data dans votre secteur"],
+                4: ["1. Construisez plateforme data pour écosystème régional\n2. Opérationnalisez IA natif (ML pipelines autonomes)\n3. Lancez real-time engine pour décisions ultra-rapides\n4. Maximisez valeur globale data (économies + nouvelles revenues)"],
+                5: ["1. Assurez souveraineté données via CamCloudGov & infrastructure locale\n2. Créez plateforme panafricaine (données pan-africaines partagées)\n3. Exportez expertise data (consulting, formations, produits)\n4. Devenez modèle référence Afrique pour transformation data"]
+            }
+        };
+        
+        // Budgets par taille
+        const budgetsBySize = {
+            tpe: { name: "TPE/PME (< 50)", 1: { short: "0.5-1.5M", medium: "1-3M", long: "2-5M" }, 2: { short: "1-3M", medium: "2-5M", long: "3-8M" }, 3: { short: "2-5M", medium: "3-8M", long: "5-10M" }, 4: { short: "3-8M", medium: "5-12M", long: "8-15M" }, 5: { short: "5-10M", medium: "8-15M", long: "12-20M" } },
+            eti: { name: "ETI (50-500)", 1: { short: "5-10M", medium: "10-20M", long: "15-30M" }, 2: { short: "10-20M", medium: "20-50M", long: "30-80M" }, 3: { short: "20-40M", medium: "40-80M", long: "60-120M" }, 4: { short: "40-80M", medium: "80-150M", long: "120-200M" }, 5: { short: "80-150M", medium: "150-300M", long: "200-400M" } },
+            ge: { name: "Grande (> 500)", 1: { short: "20-50M", medium: "50-100M", long: "100-200M" }, 2: { short: "50-100M", medium: "100-200M", long: "200-400M" }, 3: { short: "100-200M", medium: "200-400M", long: "400-800M" }, 4: { short: "200-400M", medium: "400-800M", long: "800M-2B" }, 5: { short: "400-800M", medium: "800M-2B", long: "2B+" } },
+            admin: { name: "Admin/Public", 1: { short: "2-5M", medium: "5-10M", long: "10-15M" }, 2: { short: "5-10M", medium: "10-20M", long: "15-30M" }, 3: { short: "10-20M", medium: "20-40M", long: "30-60M" }, 4: { short: "20-40M", medium: "40-80M", long: "60-120M" }, 5: { short: "40-80M", medium: "80-150M", long: "120-250M" } }
+        };
+        
+        // Benchmark moyen par secteur & taille
+        const benchmarkByContext = {
+            finance: { tpe: 2.1, eti: 2.8, ge: 3.5, admin: 2.2 },
+            sante: { tpe: 1.9, eti: 2.5, ge: 3.2, admin: 2.0 },
+            telecom: { tpe: 2.3, eti: 3.1, ge: 4.0, admin: 2.4 },
+            agriculture: { tpe: 1.5, eti: 2.0, ge: 2.8, admin: 1.7 },
+            commerce: { tpe: 1.8, eti: 2.3, ge: 3.0, admin: 1.9 },
+            admin: { tpe: 1.7, eti: 2.2, ge: 2.9, admin: 2.3 }
+        };
+        
+        // Fonction pour calculer le temps restant dynamiquement
+        function getTimeRemaining() {
+            const now = new Date();
+            const deadline = new Date('2026-06-23');
+            const diff = deadline - now;
+            const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.44));
+            const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+            
+            if (months > 0) {
+                return `${months} mois et ${days} jours`;
+            } else if (days > 0) {
+                return `${days} jours`;
+            } else {
+                return "DÉPASSÉ - Action urgente!";
+            }
+        }
+        
+        // ============ LOGIQUE DU FORMULAIRE ============
+        
+        const form = document.getElementById('assessmentForm');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateScore();
+        });
+        
+        function getFormDataValues() {
+            const questions = [
+                ['g1', 'g2', 'g3', 'g4'],
+                ['c1', 'c2', 'c3', 'c4'],
+                ['q1', 'q2', 'q3', 'q4'],
+                ['t1', 't2', 't3'],
+                ['s2', 's3'],
+                ['e1', 'e2'],
+                ['r1', 'r2', 'r3', 'r4', 'r5']
+            ];
+            
+            const scores = [];
+            questions.forEach(axis => {
+                const values = axis.map(q => {
+                    const el = document.querySelector(`input[name="${q}"]:checked`);
+                    return el ? parseInt(el.value) : 0;
+                }).filter(v => v > 0);
+                
+                if (values.length > 0) {
+                    scores.push(values.reduce((a,b) => a+b) / values.length);
+                } else {
+                    scores.push(0);
+                }
+            });
+            
+            return scores;
+        }
+        
+        function calculateScore() {
+            const scores = getFormDataValues();
+            const globalScore = scores.reduce((a,b) => a+b) / scores.length;
+            const rgpdScore = scores[6];
+            const level = Math.ceil(globalScore);
+            const orgType = document.getElementById('orgType').value;
+            
+            displayResults(globalScore, level, scores, rgpdScore, orgType);
+            switchTab('results');
+        }
+        
+        function displayResults(globalScore, level, axisScores, rgpdScore, orgType) {
+            const safeLevel = Math.min(Math.max(level, 1), 5);
+            
+            document.getElementById('levelScore').textContent = globalScore.toFixed(1);
+            document.getElementById('levelName').textContent = levelNames[safeLevel];
+            document.getElementById('levelDesc').textContent = levelDescriptions[safeLevel];
+            document.getElementById('yourScore').textContent = globalScore.toFixed(1) + ' / 5';
+            
+            // BENCHMARK PAR SECTEUR & TAILLE
+            const sector = document.getElementById('sector')?.value || 'finance';
+            const orgSize = document.getElementById('orgSize')?.value || 'eti';
+            const sectorData = benchmarkByContext[sector] || benchmarkByContext.finance;
+            const benchmarkForContext = sectorData[orgSize] || 2.65;
+            
+            const sizeLabels = { tpe: 'PME', eti: 'ETI', ge: 'Grande', admin: 'Public' };
+            let benchmarkHTML = `
+                <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 6px; font-size: 0.9em;">
+                    <strong>📊 Benchmark votre contexte :</strong><br>
+                    ${sector.charAt(0).toUpperCase() + sector.slice(1)} - ${sizeLabels[orgSize]} : 
+                    <span style="color: var(--color-accent-orange); font-weight: bold;">${benchmarkForContext.toFixed(2)} / 5</span>
+                </div>
+            `;
+            document.getElementById('benchmarkContextContainer').innerHTML = benchmarkHTML;
+            
+            // COMPLIANCE ALERT
+            let alertHTML = '';
+            const timeRemaining = getTimeRemaining();
+            if (rgpdScore < 3) {
+                alertHTML = `
+                    <div class="compliance-alert">
+                        <h3>⚠️ Un point d'attention RGPD 2024-017 : Mise en Conformité Recommandée</h3>
+                        <p><strong>Score Readiness RGPD :</strong> ${rgpdScore.toFixed(1)}/5 (À améliorer)</p>
+                        <p>Vous avez <strong>${timeRemaining}</strong> avant le 23 juin 2026 pour vous mettre en conformité. C'est le moment d'agir 💪</p>
+                        <p style="margin-top: 10px; color: #333;"><strong>Bonne nouvelle :</strong> Notre plan d'action ci-dessous vous guidera étape par étape. La conformité est à votre portée!</p>
+                        <div class="compliance-score">
+                            Votre roadmap RGPD : Étape 1 (Audit) → Étape 2 (Politique) → Étape 3 (Destruction sécurisée) = Conformité ✅
+                        </div>
+                    </div>
+                `;
+            } else {
+                alertHTML = `
+                    <div style="background: #e8f5e9; border-left: 4px solid #27ae60; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p><strong>✅ Score Readiness RGPD :</strong> ${rgpdScore.toFixed(1)}/5 (BON)</p>
+                        <p>Votre organisation a une base solide pour la conformité. Continuer la mise à jour annuelle.</p>
+                    </div>
+                `;
+            }
+            document.getElementById('complianceAlertContainer').innerHTML = alertHTML;
+            
+            // RECOMMENDATIONS
+            const shortRecs = recommendations.short[safeLevel] || recommendations.short[2];
+            const mediumRecs = recommendations.medium[safeLevel] || recommendations.medium[2];
+            const longRecs = recommendations.long[safeLevel] || recommendations.long[2];
+            
+            // Format recommendations (handle multi-line with \n)
+            const formatRecs = (recs) => {
+                return recs.map(r => {
+                    const lines = r.split('\n');
+                    if (lines.length > 1) {
+                        return `<li style="margin-bottom: 12px; white-space: pre-line; line-height: 1.6;">✓ ${lines.join('\n')}</li>`;
+                    }
+                    return `<li>✓ ${r}</li>`;
+                }).join('');
+            };
+            
+            let recsHTML = `
+                <div class="rec-horizon">
+                    <h4>⚡ Court Terme (1-3 mois) - Actions Rapides</h4>
+                    <ul style="list-style: none; padding-left: 0;">
+                        ${formatRecs(shortRecs)}
+                    </ul>
+                </div>
+                <div class="rec-horizon">
+                    <h4>📈 Moyen Terme (3-12 mois) - Consolidation</h4>
+                    <ul style="list-style: none; padding-left: 0;">
+                        ${formatRecs(mediumRecs)}
+                    </ul>
+                </div>
+                <div class="rec-horizon">
+                    <h4>🎯 Long Terme (12-24+ mois) - Transformation</h4>
+                    <ul style="list-style: none; padding-left: 0;">
+                        ${formatRecs(longRecs)}
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('recsContainer').innerHTML = recsHTML;
+            
+            // ROADMAP
+            const sizeKey = orgType || 'eti';
+            const sizeData = budgetsBySize[sizeKey];
+            const budgetForLevel = sizeData[safeLevel];
+            
+            let roadmapHTML = `
+                <h4>💰 Roadmap Budgétaire 12 mois</h4>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+                    <strong>Taille :</strong> ${sizeData.name} | <strong>Niveau :</strong> ${safeLevel} - ${levelNames[safeLevel]}
+                </p>
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid var(--color-accent-orange);">
+                    <div class="benchmark-item">
+                        <span>T1 (0-3 mois) :</span>
+                        <strong>${budgetForLevel.short} FCFA</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>T2-T3 (3-12 mois) :</span>
+                        <strong>${budgetForLevel.medium} FCFA</strong>
+                    </div>
+                    <div class="benchmark-item">
+                        <span>Long terme (12+ mois) :</span>
+                        <strong>${budgetForLevel.long} FCFA</strong>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('roadmapSection').innerHTML = roadmapHTML;
+            
+            // RGPD PLAN
+            let rgpdPlanHTML = `
+                <h4>🔐 Plan Conformité RGPD 2024-017</h4>
+                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Basé sur votre score readiness (${rgpdScore.toFixed(1)}/5)</p>
+                <div class="rgpd-step">
+                    <h4><span class="step-number">1</span> Audit (Mois 1-3) - Diagnostic</h4>
+                    <ul>
+                        <li>Cartographier données (CVs, contrats, fiches paie)</li>
+                        <li>Identifier stockages (serveurs, archives, papier)</li>
+                        <li>Clarifier délais conservation (OHADA 10ans, Code Travail)</li>
+                        <li>Évaluer processus destruction actuel</li>
+                    </ul>
+                    <p style="margin-top: 8px; font-size: 0.85em; color: #666;">Coût : 500K-2M FCFA</p>
+                </div>
+                <div class="rgpd-step">
+                    <h4><span class="step-number">2</span> Politique (Mois 3-6) - Cadre</h4>
+                    <ul>
+                        <li>Rédiger Politique Protection & Destruction Données</li>
+                        <li>Nommer DPO (Data Protection Officer)</li>
+                        <li>Former collaborateurs (formation obligatoire)</li>
+                        <li>Diffuser politique (affichage visible)</li>
+                    </ul>
+                    <p style="margin-top: 8px; font-size: 0.85em; color: #666;">Coût : 200K-500K FCFA</p>
+                </div>
+                <div class="rgpd-step">
+                    <h4><span class="step-number">3</span> Exécution (Mois 6-18) - Action</h4>
+                    <ul>
+                        <li>Destruction sécurisée NSA P-6 (irréversible)</li>
+                        <li>Certificat + Registre tenu (preuve conformité)</li>
+                        <li>Destruction régulière (1-2x/an)</li>
+                        <li>Audit interne annuel</li>
+                    </ul>
+                    <p style="margin-top: 8px; font-size: 0.85em; color: #666;">Coût annuel : 1-2M FCFA destruction</p>
+                </div>
+            `;
+            
+            document.getElementById('rgpdPlanSection').innerHTML = rgpdPlanHTML;
+            
+            // Afficher résultats
+            document.getElementById('assessmentForm').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        // INITIALISATION: Mettre à jour le temps restant à la visite de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeRemainingEl = document.getElementById('timeRemainingInfo');
+            if (timeRemainingEl) {
+                const timeRemaining = getTimeRemaining();
+                timeRemainingEl.innerHTML = `Il vous reste <strong>${timeRemaining}</strong> pour vous mettre en conformité.`;
+            }
+        });
+    </script>
 </body>
 </html>
